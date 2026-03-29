@@ -1,0 +1,90 @@
+# _schema.yml for "revealjs-a11y" revealjs-plugin extension
+# Describes plugin options for IDE tooling and runtime validation.
+#
+# Configure in document front matter under format: revealjs:
+#   format:
+#     revealjs:
+#       revealjs-a11y:
+#         skip-navigation: true
+#         high-contrast: false
+
+$schema: https://m.canouil.dev/quarto-wizard/assets/schema/v1/extension-schema.json
+
+options:
+  skip-navigation:
+    type: boolean
+    default: true
+    description: "Add a skip navigation link for keyboard users."
+  focus-indicators:
+    type: boolean
+    default: true
+    description: "Enable enhanced visible focus indicators."
+  reduced-motion:
+    type: boolean
+    default: true
+    description: "Respect prefers-reduced-motion by disabling transitions."
+  high-contrast:
+    type: boolean
+    default: false
+    description: "Enable high contrast mode on load (togglable via the settings menu)."
+  font-size-controls:
+    type: boolean
+    default: true
+    description: "Enable font size controls (keyboard +/-/0 and settings menu)."
+  font-selection:
+    type: boolean
+    default: true
+    description: "Enable font family selection via the settings menu."
+  font-families:
+    type: array
+    description: "List of font families to cycle through. Each entry has name, value, and optional url keys."
+  text-spacing:
+    type: boolean
+    default: true
+    description: "Enable line height, letter spacing, and word spacing controls via the settings menu."
+  link-highlight:
+    type: boolean
+    default: true
+    description: "Underline all links so they are distinguishable without relying on colour alone."
+  slide-landmarks:
+    type: boolean
+    default: true
+    description: "Add ARIA landmark roles and labels to slides."
+  alt-text-warnings:
+    type: boolean
+    default: false
+    description: "Highlight images missing alt text (useful during authoring)."
+  announce-slide-numbers:
+    type: boolean
+    default: true
+    description: "Announce slide numbers and titles to screen readers."
+  announce-fragments:
+    type: boolean
+    default: true
+    description: "Announce fragment content to screen readers when shown or hidden."
+  slide-menu-a11y:
+    type: boolean
+    default: true
+    description: "Patch the bundled reveal.js-menu plugin for screen reader accessibility (inert when closed, ARIA roles, focus management)."
+  slide-change-cue:
+    type: [boolean, object]
+    default:
+      visual: true
+      audio: false
+    description: "Slide change feedback. Use `true` to enable both visual and audio cues, `false` to disable, or an object with `visual` and `audio` boolean keys for fine-grained control."
+  font-size-step:
+    type: number
+    default: 10
+    description: "Percentage increment for font size adjustments."
+  font-size-min:
+    type: number
+    default: 50
+    description: "Minimum font size percentage."
+  font-size-max:
+    type: number
+    default: 200
+    description: "Maximum font size percentage."
+  menu:
+    type: [boolean, object]
+    default: true
+    description: "Accessibility settings menu. Use `true` to enable with defaults, `false` to disable, or an object with `enabled` (boolean), `shortcut` (string, default 'a'), and `position` ('right' or 'left') keys."

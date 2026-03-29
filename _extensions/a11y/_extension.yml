@@ -1,0 +1,13 @@
+title: Reveal.js A11y
+author: Mickaël Canouil
+version: 0.0.0
+quarto-required: ">=1.9.36"
+contributes:
+  revealjs-plugins:
+    - name: RevealjsA11y
+      script:
+        - revealjs-a11y.js
+      stylesheet:
+        - revealjs-a11y.css
+      config:
+        revealjs-a11y: true
