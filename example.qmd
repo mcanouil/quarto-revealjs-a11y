@@ -1,0 +1,177 @@
+---
+title: "Reveal.js A11y"
+subtitle: "Accessibility Plugin Demo"
+author: "Mickaël Canouil"
+format:
+  revealjs:
+    output-file: index
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      skip-navigation: true
+      focus-indicators: true
+      reduced-motion: true
+      high-contrast: false
+      font-size-controls: true
+      font-selection: true
+      text-spacing: true
+      link-highlight: true
+      slide-landmarks: true
+      alt-text-warnings: true
+      announce-slide-numbers: true
+      announce-fragments: true
+      slide-menu-a11y: true
+      slide-change-cue:
+        visual: true
+        audio: true
+      menu: true
+---
+
+## Introduction
+
+This presentation demonstrates the Reveal.js A11y plugin.
+
+The plugin enhances accessibility for keyboard users, screen readers, and users with visual preferences.
+
+## Skip Navigation
+
+Press {{< kbd "Tab" mode=plain >}} at the start of the presentation to reveal the skip navigation link.
+
+This allows keyboard users to jump directly to the slide content.
+
+## Focus Indicators
+
+Interactive elements receive enhanced focus outlines when navigating with the keyboard.
+
+Try pressing {{< kbd Tab >}} to see the focus indicators on links and buttons:
+
+- [Example link](#).
+- Another [example link](#).
+
+## Reduced Motion
+
+The plugin respects the `prefers-reduced-motion` media query.
+
+When enabled in your operating system settings, all slide transitions are disabled automatically.
+
+## High Contrast Mode
+
+Toggle high contrast mode from the accessibility settings menu.
+
+This switches the presentation to a high contrast colour scheme:
+
+- Black text on white background.
+- Underlined links with standard colours.
+- Bordered code blocks.
+
+## Font Size Controls
+
+Adjust the font size using keyboard shortcuts:
+
+- Press {{< kbd "+" mode=plain >}} to increase the font size.
+- Press {{< kbd "-" mode=plain >}} to decrease the font size.
+- Press {{< kbd "0" mode=plain >}} to reset to the default size.
+
+The setting persists across sessions.
+
+## Font Selection
+
+Select a font family from the accessibility settings menu:
+
+- Default (presentation theme font).
+- System Sans, Serif, and Mono.
+- Atkinson Hyperlegible (high legibility).
+- Lexend (reduced visual stress).
+- OpenDyslexic (dyslexia-friendly).
+
+On Chromium browsers, a system font picker is also available from the menu.
+
+## Text Spacing
+
+Adjust text spacing from the accessibility settings menu:
+
+- Line height: five levels (default, then four increments).
+- Letter spacing: five levels (default, then four increments).
+
+Both settings persist across sessions.
+
+## Link Highlight
+
+All links are underlined by default so they are distinguishable without relying on colour alone.
+
+This meets WCAG 1.4.1 (Use of Colour) requirements:
+
+- [This link is underlined](#).
+- [So is this one](#).
+
+## Slide Landmarks
+
+Each slide is annotated with ARIA landmark roles.
+
+Screen readers can navigate between slides using landmark navigation.
+
+The current slide is marked with `aria-current="step"`.
+
+## Alt Text Warnings {.smaller}
+
+Images without alt text are highlighted with a red dashed outline during authoring.
+
+![A placeholder image with alt text](https://placehold.co/400x200){fig-alt="Placeholder image demonstrating proper alt text usage"}
+
+![](https://placehold.co/400x200)
+
+The second image above should display a warning because it lacks alt text.
+
+## Slide Change Cue
+
+A visual sweep appears along the top edge of the presentation each time you navigate to a new slide.
+
+An optional audio tone can also be played.
+
+This is especially helpful when transitions are disabled (reduced motion), making it clear that the content has changed.
+
+## Screen Reader Announcements
+
+Slide changes are announced to screen readers with the slide number and title.
+
+Navigate between slides to hear the announcements via your screen reader.
+
+## Accessibility Settings Menu
+
+Press {{< kbd "A" mode=plain >}} to open or close the settings menu.
+
+The menu provides controls for all accessibility features in one place:
+
+- Toggle switches for high contrast and link highlighting.
+- Colour overlay for reading comfort.
+- Sliders for font size, line height, letter spacing, and word spacing.
+- Font family selection.
+- Slide change cue toggles.
+- Reset all preferences.
+
+## Configuration
+
+```yaml
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      skip-navigation: true
+      focus-indicators: true
+      reduced-motion: true
+      high-contrast: false
+      font-size-controls: true
+      font-selection: true
+      text-spacing: true
+      link-highlight: true
+      slide-landmarks: true
+      alt-text-warnings: false
+      announce-slide-numbers: true
+      slide-change-cue: true
+      menu: true
+```
+
+## Thank You
+
+Learn more at the [GitHub repository](https://github.com/mcanouil/quarto-revealjs-a11y).

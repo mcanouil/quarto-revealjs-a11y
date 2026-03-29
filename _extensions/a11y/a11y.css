@@ -1,0 +1,796 @@
+/**
+ * Reveal.js A11y - RevealJS Accessibility Plugin Styles
+ * Provides styling for skip navigation, focus indicators,
+ * high contrast mode, reduced motion, link highlight,
+ * alt text warnings, local font picker, and slide change indicator.
+ *
+ * @license MIT License
+ * @copyright 2026 Mickaël Canouil
+ * @author Mickaël Canouil
+ */
+
+:root {
+  --a11y-accent: #4a90d9;
+}
+
+/* =========================================================================
+   Skip Navigation Link
+   ========================================================================= */
+
+.revealjs-a11y-skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 0.75em 1.5em;
+  background: #000;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 0 0 0.5em 0.5em;
+  transition: top 0.2s ease;
+}
+
+.revealjs-a11y-skip-link:focus {
+  top: 0;
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 2px;
+}
+
+/* =========================================================================
+   Enhanced Focus Indicators
+   ========================================================================= */
+
+.revealjs-a11y-focus-indicators *:focus-visible {
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.revealjs-a11y-focus-indicators a:focus-visible {
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 2px;
+  text-decoration: underline;
+}
+
+.revealjs-a11y-focus-indicators button:focus-visible,
+.revealjs-a11y-focus-indicators input:focus-visible,
+.revealjs-a11y-focus-indicators select:focus-visible,
+.revealjs-a11y-focus-indicators textarea:focus-visible {
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px var(--a11y-accent);
+}
+
+/* =========================================================================
+   High Contrast Mode
+   ========================================================================= */
+
+.revealjs-a11y-high-contrast .slides {
+  color: #000 !important;
+  background: #fff !important;
+}
+
+.revealjs-a11y-high-contrast .slides h1,
+.revealjs-a11y-high-contrast .slides h2,
+.revealjs-a11y-high-contrast .slides h3,
+.revealjs-a11y-high-contrast .slides h4,
+.revealjs-a11y-high-contrast .slides h5,
+.revealjs-a11y-high-contrast .slides h6 {
+  color: #000 !important;
+}
+
+.revealjs-a11y-high-contrast .slides a {
+  color: #0000ee !important;
+  text-decoration: underline !important;
+}
+
+.revealjs-a11y-high-contrast .slides a:visited {
+  color: #551a8b !important;
+}
+
+.revealjs-a11y-high-contrast .slides code {
+  color: #000 !important;
+  background: #e8e8e8 !important;
+  border: 1px solid #666 !important;
+}
+
+.revealjs-a11y-high-contrast .slides pre {
+  background: #f5f5f5 !important;
+  border: 2px solid #000 !important;
+}
+
+.revealjs-a11y-high-contrast .slides pre code {
+  border: none !important;
+}
+
+.revealjs-a11y-high-contrast .slides blockquote {
+  border-left: 4px solid #000 !important;
+  color: #000 !important;
+}
+
+.revealjs-a11y-high-contrast .slides table th {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.revealjs-a11y-high-contrast .slides table td {
+  border: 1px solid #000 !important;
+}
+
+.revealjs-a11y-high-contrast .slides img {
+  outline: 2px solid #000;
+}
+
+.revealjs-a11y-high-contrast .reveal-viewport {
+  background: #fff !important;
+}
+
+/* =========================================================================
+   Reduced Motion
+   ========================================================================= */
+
+.revealjs-a11y-reduced-motion .slides section {
+  transition: none !important;
+}
+
+.revealjs-a11y-reduced-motion .slides section .fragment {
+  transition: none !important;
+}
+
+.revealjs-a11y-reduced-motion .backgrounds .slide-background {
+  transition: none !important;
+}
+
+.revealjs-a11y-reduced-motion .progress span {
+  transition: none !important;
+}
+
+/* =========================================================================
+   Link Highlight (underline all links for non-colour distinction)
+   ========================================================================= */
+
+.revealjs-a11y-link-highlight .slides a {
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+
+.revealjs-a11y-link-highlight .slides a:hover,
+.revealjs-a11y-link-highlight .slides a:focus {
+  text-decoration-thickness: 2px !important;
+}
+
+/* =========================================================================
+   Alt Text Warnings
+   ========================================================================= */
+
+.revealjs-a11y-missing-alt {
+  outline: 4px dashed #cc0000 !important;
+  outline-offset: 4px;
+}
+
+.revealjs-a11y-missing-alt-label {
+  display: block;
+  padding: 0.25em 0.5em;
+  background: #cc0000;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border-radius: 0.25em;
+  width: fit-content;
+  margin-top: 0.25em;
+  pointer-events: none;
+}
+
+/* =========================================================================
+   Slide Change Indicator
+   ========================================================================= */
+
+.revealjs-a11y-slide-change-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 100;
+  background: var(--a11y-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+.revealjs-a11y-slide-change-active {
+  animation: revealjs-a11y-indicator-sweep 0.4s ease-out forwards;
+}
+
+@keyframes revealjs-a11y-indicator-sweep {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+/* =========================================================================
+   Font Override (applies to all elements including headings)
+   ========================================================================= */
+
+.revealjs-a11y-font-override .slides,
+.revealjs-a11y-font-override .slides h1,
+.revealjs-a11y-font-override .slides h2,
+.revealjs-a11y-font-override .slides h3,
+.revealjs-a11y-font-override .slides h4,
+.revealjs-a11y-font-override .slides h5,
+.revealjs-a11y-font-override .slides h6,
+.revealjs-a11y-font-override .slides p,
+.revealjs-a11y-font-override .slides li,
+.revealjs-a11y-font-override .slides blockquote {
+  font-family: var(--a11y-font-override) !important;
+}
+
+/* =========================================================================
+   Text Spacing Override (line height and letter spacing)
+   ========================================================================= */
+
+.revealjs-a11y-line-height-override .slides,
+.revealjs-a11y-line-height-override .slides section,
+.revealjs-a11y-line-height-override .slides h1,
+.revealjs-a11y-line-height-override .slides h2,
+.revealjs-a11y-line-height-override .slides h3,
+.revealjs-a11y-line-height-override .slides h4,
+.revealjs-a11y-line-height-override .slides h5,
+.revealjs-a11y-line-height-override .slides h6,
+.revealjs-a11y-line-height-override .slides p,
+.revealjs-a11y-line-height-override .slides li,
+.revealjs-a11y-line-height-override .slides blockquote {
+  line-height: var(--a11y-line-height) !important;
+}
+
+.revealjs-a11y-letter-spacing-override .slides,
+.revealjs-a11y-letter-spacing-override .slides section,
+.revealjs-a11y-letter-spacing-override .slides h1,
+.revealjs-a11y-letter-spacing-override .slides h2,
+.revealjs-a11y-letter-spacing-override .slides h3,
+.revealjs-a11y-letter-spacing-override .slides h4,
+.revealjs-a11y-letter-spacing-override .slides h5,
+.revealjs-a11y-letter-spacing-override .slides h6,
+.revealjs-a11y-letter-spacing-override .slides p,
+.revealjs-a11y-letter-spacing-override .slides li,
+.revealjs-a11y-letter-spacing-override .slides blockquote {
+  letter-spacing: var(--a11y-letter-spacing) !important;
+}
+
+.revealjs-a11y-word-spacing-override .slides,
+.revealjs-a11y-word-spacing-override .slides section,
+.revealjs-a11y-word-spacing-override .slides h1,
+.revealjs-a11y-word-spacing-override .slides h2,
+.revealjs-a11y-word-spacing-override .slides h3,
+.revealjs-a11y-word-spacing-override .slides h4,
+.revealjs-a11y-word-spacing-override .slides h5,
+.revealjs-a11y-word-spacing-override .slides h6,
+.revealjs-a11y-word-spacing-override .slides p,
+.revealjs-a11y-word-spacing-override .slides li,
+.revealjs-a11y-word-spacing-override .slides blockquote {
+  word-spacing: var(--a11y-word-spacing) !important;
+}
+
+/* =========================================================================
+   Colour Overlay (reading aid)
+   ========================================================================= */
+
+.revealjs-a11y-colour-overlay .slides::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--a11y-overlay-colour, transparent);
+  pointer-events: none;
+  z-index: 99;
+}
+
+/* =========================================================================
+   Local Font Picker Dialog
+   ========================================================================= */
+
+.revealjs-a11y-font-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 200;
+  width: min(500px, 90vw);
+  max-height: 70vh;
+  padding: 1.5em;
+  background: #fff;
+  color: #222;
+  border: 2px solid var(--a11y-accent);
+  border-radius: 0.5em;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.revealjs-a11y-font-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.revealjs-a11y-font-dialog h3 {
+  margin: 0 0 0.75em;
+  font-size: 1.2em;
+  color: #222;
+}
+
+.revealjs-a11y-font-search {
+  width: 100%;
+  padding: 0.5em 0.75em;
+  margin-bottom: 0.75em;
+  border: 1px solid #999;
+  border-radius: 0.25em;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.revealjs-a11y-font-search:focus {
+  outline: 2px solid var(--a11y-accent);
+  outline-offset: 1px;
+}
+
+.revealjs-a11y-font-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.revealjs-a11y-font-list li {
+  padding: 0.5em 0.75em;
+  cursor: pointer;
+  border-radius: 0.25em;
+  transition: background 0.15s;
+}
+
+.revealjs-a11y-font-list li:hover,
+.revealjs-a11y-font-list li:focus {
+  background: #e8f0fe;
+  outline: none;
+}
+
+.revealjs-a11y-font-dialog-close {
+  margin-top: 0.75em;
+  padding: 0.5em 1.5em;
+  align-self: flex-end;
+  background: var(--a11y-accent);
+  color: #fff;
+  border: none;
+  border-radius: 0.25em;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.revealjs-a11y-font-dialog-close:hover {
+  background: color-mix(in srgb, var(--a11y-accent) 85%, #000);
+}
+
+.revealjs-a11y-font-dialog-close:focus {
+  outline: 2px solid #222;
+  outline-offset: 2px;
+}
+
+/* =========================================================================
+   Screen Reader Status Region
+   ========================================================================= */
+
+.revealjs-a11y-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media print {
+  .revealjs-a11y-menu,
+  .revealjs-a11y-menu-backdrop {
+    display: none !important;
+  }
+}
+
+/* =========================================================================
+   Accessibility Settings Menu - Backdrop
+   ========================================================================= */
+
+.revealjs-a11y-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.revealjs-a11y-menu-backdrop[aria-hidden="false"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* =========================================================================
+   Accessibility Settings Menu - Panel
+   ========================================================================= */
+
+.revealjs-a11y-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(380px, 85vw);
+  height: 100vh;
+  height: 100dvh;
+  z-index: 200;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  background: #fff;
+  color: #222;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  letter-spacing: normal;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.revealjs-a11y-menu--left {
+  right: auto;
+  left: 0;
+  transform: translateX(-100%);
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.2);
+}
+
+.revealjs-a11y-menu[aria-hidden="false"] {
+  transform: translateX(0);
+}
+
+/* =========================================================================
+   Accessibility Settings Menu - Header
+   ========================================================================= */
+
+.revealjs-a11y-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.revealjs-a11y-menu-header h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #222;
+}
+
+.revealjs-a11y-menu-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #555;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.revealjs-a11y-menu-close:hover {
+  background: #f0f0f0;
+  color: #222;
+}
+
+.revealjs-a11y-menu-close:focus {
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 2px;
+}
+
+/* =========================================================================
+   Accessibility Settings Menu - Body and Groups
+   ========================================================================= */
+
+.revealjs-a11y-menu-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1.25rem;
+}
+
+.revealjs-a11y-menu-group {
+  border: none;
+  padding: 0;
+  margin: 0 0 1.25rem;
+}
+
+.revealjs-a11y-menu-group legend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+/* =========================================================================
+   Accessibility Settings Menu - Controls
+   ========================================================================= */
+
+.revealjs-a11y-menu-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.revealjs-a11y-menu-row:last-child {
+  border-bottom: none;
+}
+
+.revealjs-a11y-menu-label {
+  flex: 1;
+  font-size: 0.875rem;
+  color: #333;
+}
+
+.revealjs-a11y-menu-value {
+  font-size: 0.8125rem;
+  color: #666;
+  min-width: 4em;
+  text-align: right;
+}
+
+/* Toggle switch */
+
+.revealjs-a11y-menu-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border: none;
+  border-radius: 12px;
+  background: #ccc;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.revealjs-a11y-menu-switch[aria-checked="true"] {
+  background: var(--a11y-accent);
+}
+
+.revealjs-a11y-menu-switch:focus {
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 2px;
+}
+
+.revealjs-a11y-menu-switch-track {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.revealjs-a11y-menu-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.revealjs-a11y-menu-switch[aria-checked="true"] .revealjs-a11y-menu-switch-thumb {
+  transform: translateX(20px);
+}
+
+/* Range slider */
+
+.revealjs-a11y-menu-range {
+  width: 100%;
+  height: 6px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #e0e0e0;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--a11y-accent);
+  margin: 0.25rem 0;
+}
+
+.revealjs-a11y-menu-range::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--a11y-accent);
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.revealjs-a11y-menu-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--a11y-accent);
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.revealjs-a11y-menu-range:focus {
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 2px;
+}
+
+/* Select dropdown */
+
+.revealjs-a11y-menu-select {
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  color: #222;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.revealjs-a11y-menu-select:focus {
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 2px;
+}
+
+/* Local font picker button */
+
+.revealjs-a11y-menu-local-font {
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  border: 1px dashed var(--a11y-accent);
+  border-radius: 4px;
+  background: #f8faff;
+  color: var(--a11y-accent);
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.2s ease;
+}
+
+.revealjs-a11y-menu-local-font:hover {
+  background: #e8f0fe;
+}
+
+.revealjs-a11y-menu-local-font:focus {
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 2px;
+}
+
+/* =========================================================================
+   Accessibility Settings Menu - Footer
+   ========================================================================= */
+
+.revealjs-a11y-menu-footer {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.revealjs-a11y-menu-reset {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  font-weight: 600;
+  border: 2px solid #c0392b;
+  border-radius: 4px;
+  background: #fff;
+  color: #c0392b;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.revealjs-a11y-menu-reset:hover {
+  background: #c0392b;
+  color: #fff;
+}
+
+.revealjs-a11y-menu-reset:focus {
+  outline: 3px solid #c0392b;
+  outline-offset: 2px;
+}
+
+/* =========================================================================
+   Accessibility Settings Menu - Reduced Motion
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .revealjs-a11y-skip-link,
+  .revealjs-a11y-font-list li,
+  .revealjs-a11y-menu,
+  .revealjs-a11y-menu-backdrop,
+  .revealjs-a11y-menu-switch,
+  .revealjs-a11y-menu-switch-thumb,
+  .revealjs-a11y-menu-local-font,
+  .revealjs-a11y-menu-reset {
+    transition: none;
+  }
+}
+
+/* =========================================================================
+   Accessibility Settings Menu - High Contrast Override
+   ========================================================================= */
+
+.revealjs-a11y-high-contrast .revealjs-a11y-menu {
+  background: #fff;
+  color: #000;
+  border-left: 2px solid #000;
+}
+
+.revealjs-a11y-high-contrast .revealjs-a11y-menu--left {
+  border-left: none;
+  border-right: 2px solid #000;
+}
+
+.revealjs-a11y-high-contrast .revealjs-a11y-menu-header {
+  border-bottom-color: #000;
+}
+
+.revealjs-a11y-high-contrast .revealjs-a11y-menu-footer {
+  border-top-color: #000;
+}
+
+.revealjs-a11y-high-contrast .revealjs-a11y-menu-switch {
+  border: 2px solid #000;
+}
+
+.revealjs-a11y-high-contrast .revealjs-a11y-menu-switch[aria-checked="true"] {
+  background: #000;
+}
+
+.revealjs-a11y-high-contrast .revealjs-a11y-menu-range {
+  accent-color: #000;
+}
+
+.revealjs-a11y-high-contrast .revealjs-a11y-menu-select {
+  border-color: #000;
+}
+
