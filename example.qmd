@@ -174,4 +174,4 @@ format:
 
 ## Thank You
 
-Learn more at the [GitHub repository](https://github.com/mcanouil/quarto-revealjs-a11y).
+Learn more at the [GitHub repository](https://github.com/mcanouil/quarto-revealjs-a11y@0.1.0).
