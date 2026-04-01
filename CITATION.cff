@@ -9,5 +9,5 @@ authors:
 repository-code: "https://github.com/mcanouil/quarto-revealjs-a11y"
 url: "https://mcanouil.github.io/quarto-revealjs-a11y/"
 license: "MIT"
-date-released: "2026-03-30"
-version: 0.1.0
+date-released: "2026-04-01"
+version: 0.1.1

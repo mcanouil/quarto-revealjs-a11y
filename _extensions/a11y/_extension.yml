@@ -1,6 +1,6 @@
 title: Reveal.js A11y
 author: Mickaël Canouil
-version: 0.1.0
+version: 0.1.1
 quarto-required: ">=1.9.36"
 contributes:
   revealjs-plugins:
