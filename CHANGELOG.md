@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.1 (2026-04-01)
+
 ### Fixes
 
 - fix: remove version-specific reference (added from CI/CD) from the GitHub repository link to ensure it always points to the latest version.
