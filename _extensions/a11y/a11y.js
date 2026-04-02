@@ -617,7 +617,8 @@ window.RevealjsA11y =
 
     function getLanguageName(code) {
       try {
-        const dn = new Intl.DisplayNames([code], { type: "language" });
+        const locale = document.documentElement.lang || "en";
+        const dn = new Intl.DisplayNames([locale], { type: "language" });
         return dn.of(code) || code;
       } catch (_e) {
         return code;
@@ -629,7 +630,9 @@ window.RevealjsA11y =
       if (!currentSlide) return;
 
       const slideLang =
-        currentSlide.getAttribute("lang") || document.documentElement.lang;
+        currentSlide.getAttribute("lang") ||
+        document.documentElement.lang ||
+        "en";
 
       if (currentSlideLang !== null && slideLang !== currentSlideLang) {
         announceStatus("Language: " + getLanguageName(slideLang));
