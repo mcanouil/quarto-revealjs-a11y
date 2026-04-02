@@ -38,7 +38,7 @@ It follows the [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.
 
 This deck demonstrates every feature of the plugin alongside a broad range of Quarto formatting and layout options.
 
-::: notes
+::: {.notes}
 Welcome to the accessibility plugin demo.
 This presentation is designed to exercise as many Quarto Reveal.js features as possible, so the plugin can be tested against real-world content types.
 :::
@@ -126,7 +126,7 @@ This switches the presentation to a high contrast colour scheme:
 - [Bordered code blocks for clarity.]{.fragment .highlight-red}
 - [All decorative elements simplified.]{.fragment .semi-fade-out}
 
-::: notes
+::: {.notes}
 The `announce-fragments` feature ensures each of these list items is announced to screen readers as they appear.
 Try navigating with a screen reader enabled to hear the announcements.
 :::
@@ -361,7 +361,7 @@ flowchart LR
   C --> D[Robust]
 ```
 
-::: notes
+::: {.notes}
 - **Perceivable**: information must be presentable in ways users can perceive.
 - **Operable**: interface components must be operable by all users.
 - **Understandable**: information and operation must be understandable.
