@@ -731,6 +731,12 @@ window.RevealjsA11y =
     // Transcript View
     // =========================================================================
 
+    function escapeHtml(text) {
+      const el = document.createElement("span");
+      el.textContent = text;
+      return el.innerHTML;
+    }
+
     function getSlideContent(slide) {
       const transcriptDiv = slide.querySelector(":scope > .transcript");
       if (transcriptDiv) {
@@ -763,7 +769,7 @@ window.RevealjsA11y =
         (revealElement.querySelector(".slides h1") || {}).textContent ||
         "Presentation";
 
-      let html = "<h1>" + title + "</h1>";
+      let html = "<h1>" + escapeHtml(title) + "</h1>";
       let slideNumber = 0;
 
       const topSections = revealElement.querySelectorAll(
@@ -776,7 +782,7 @@ window.RevealjsA11y =
             slideNumber++;
             const heading = sub.querySelector("h1, h2, h3, h4, h5, h6");
             const slideTitle = heading
-              ? heading.textContent.trim()
+              ? escapeHtml(heading.textContent.trim())
               : "Slide " + slideNumber;
             html +=
               "<article><h3>" +
@@ -789,7 +795,7 @@ window.RevealjsA11y =
           slideNumber++;
           const heading = section.querySelector("h1, h2, h3, h4, h5, h6");
           const slideTitle = heading
-            ? heading.textContent.trim()
+            ? escapeHtml(heading.textContent.trim())
             : "Slide " + slideNumber;
           html +=
             "<article><h2>" +
@@ -843,6 +849,23 @@ window.RevealjsA11y =
         if (e.key === "Escape") {
           e.preventDefault();
           closeTranscript();
+          return;
+        }
+
+        if (e.key === "Tab") {
+          const focusable = getFocusableElements(overlay);
+          if (focusable.length === 0) return;
+
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
         }
       };
       document.addEventListener("keydown", transcriptKeyHandler);
@@ -884,15 +907,19 @@ window.RevealjsA11y =
     }
 
     function setupPrintTranscript() {
-      const slides = revealElement.querySelectorAll(
-        ".slides > section, .slides > section > section",
+      const topSections = revealElement.querySelectorAll(
+        ".slides > section",
       );
-      slides.forEach((slide) => {
-        if (slide.querySelector(":scope > .transcript")) return;
-        const div = document.createElement("div");
-        div.className = "transcript";
-        div.innerHTML = getSlideContent(slide);
-        slide.appendChild(div);
+      topSections.forEach((section) => {
+        const nested = section.querySelectorAll(":scope > section");
+        const targets = nested.length > 0 ? nested : [section];
+        targets.forEach((slide) => {
+          if (slide.querySelector(":scope > .transcript")) return;
+          const div = document.createElement("div");
+          div.className = "transcript";
+          div.innerHTML = getSlideContent(slide);
+          slide.appendChild(div);
+        });
       });
     }
 
