@@ -21,6 +21,8 @@ format:
       announce-slide-numbers: true
       announce-fragments: true
       announce-language-changes: true
+      transcript: true
+      pointer-indicator: true
       slide-menu-a11y: true
       slide-change-cue:
         visual: true
@@ -227,6 +229,36 @@ Le lecteur d'écran devrait annoncer le changement de langue.
 This slide demonstrates language change announcements.
 The `{lang="fr"}` attribute on the heading tells Quarto to set `lang="fr"` on the `<section>`.
 The plugin detects the change and announces it to screen readers.
+:::
+
+## Transcript View
+
+Press {{< kbd "T" mode=plain >}} to open a linearised transcript of the presentation.
+
+The transcript uses explicit `::: {.transcript}` blocks when provided, otherwise it falls back to the slide's visible content.
+Speaker notes are never included.
+
+::: {.transcript}
+This is an explicitly authored transcript for the transcript view slide.
+It demonstrates how authors can provide custom transcript text that is more descriptive than the slide's visual content.
+:::
+
+::: {.notes}
+The transcript view is useful for screen reader users and anyone who prefers a linear reading experience.
+Press T to open it, Escape to close.
+:::
+
+## Pointer / Focus Indicator
+
+Press {{< kbd "P" mode=plain >}} to toggle a large, high-visibility spotlight that follows the cursor or keyboard focus.
+
+- Useful for low-vision users following along on a projected display.
+- Configurable size and colour via the accessibility settings menu.
+- Uses `pointer-events: none` so clicks pass through the spotlight.
+
+::: {.notes}
+The pointer indicator tracks the mouse cursor via `mousemove` and keyboard focus via `focusin`.
+It uses `requestAnimationFrame` for smooth updates and `will-change: transform` for GPU compositing.
 :::
 
 ## Alt Text Warnings {.smaller}

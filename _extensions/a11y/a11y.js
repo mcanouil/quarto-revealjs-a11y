@@ -3,8 +3,7 @@
  * Enhances Reveal.js presentations with accessibility features including
  * skip navigation, focus management, reduced motion, high contrast,
  * font size controls, font selection, text spacing, slide landmarks,
- * alt text warnings, link highlighting, language change announcements,
- * and menu integration.
+ * alt text warnings, link highlighting, and menu integration.
  *
  * @license MIT License
  * @copyright 2026 Mickaël Canouil
@@ -28,8 +27,9 @@ window.RevealjsA11y =
       altTextWarnings: false,
       announceSlideNumbers: true,
       announceFragments: true,
-      announceLanguageChanges: true,
       slideChangeCue: { visual: true, audio: false },
+      transcript: { enabled: true, print: false },
+      pointerIndicator: false,
       slideMenuA11y: true,
       fontSizeStep: 10,
       fontSizeMin: 50,
@@ -80,7 +80,15 @@ window.RevealjsA11y =
     let primeAudioKeydown = null;
     let slideMenuObserver = null;
     let slideMenuClassObserver = null;
-    let currentSlideLang = null;
+    let transcriptOpen = false;
+    let transcriptPreviousFocus = null;
+    let transcriptPreviousKeyboard = null;
+    let transcriptKeyHandler = null;
+    let pointerActive = false;
+    let pointerElement = null;
+    let pointerRafId = null;
+    let pointerMoveHandler = null;
+    let pointerFocusHandler = null;
     const deckHandlers = [];
 
     function deckOn(event, handler) {
@@ -135,12 +143,58 @@ window.RevealjsA11y =
       return fallback;
     }
 
+    function normaliseTranscript(value, fallback) {
+      if (typeof value === "boolean") {
+        return { enabled: value, print: false };
+      }
+      if (value && typeof value === "object") {
+        return {
+          enabled:
+            value.enabled !== undefined ? value.enabled : fallback.enabled,
+          print: value.print !== undefined ? value.print : fallback.print,
+        };
+      }
+      return fallback;
+    }
+
+    function normalisePointer(value, fallback) {
+      if (typeof value === "boolean") {
+        return value
+          ? {
+              enabled: true,
+              size: 80,
+              colour: "rgba(74, 144, 217, 0.4)",
+              shortcut: "p",
+            }
+          : false;
+      }
+      if (value && typeof value === "object") {
+        return {
+          enabled: value.enabled !== undefined ? value.enabled : true,
+          size: value.size != null ? value.size : 80,
+          colour:
+            value.colour || value.color || "rgba(74, 144, 217, 0.4)",
+          shortcut:
+            value.shortcut != null ? value.shortcut : "p",
+        };
+      }
+      return fallback;
+    }
+
     function resolveConfig(revealConfig) {
       const userConfig = revealConfig["revealjs-a11y"] || {};
       const merged = Object.assign({}, DEFAULT_CONFIG, normaliseKeys(userConfig));
       merged.slideChangeCue = normaliseCue(
         merged.slideChangeCue,
         DEFAULT_CONFIG.slideChangeCue,
+      );
+      merged.transcript = normaliseTranscript(
+        merged.transcript,
+        DEFAULT_CONFIG.transcript,
+      );
+      merged.pointerIndicator = normalisePointer(
+        merged.pointerIndicator,
+        false,
       );
       merged.menu = normaliseMenu(merged.menu, DEFAULT_CONFIG.menu);
       merged.fontSizeStep = Math.max(1, merged.fontSizeStep || DEFAULT_CONFIG.fontSizeStep);
@@ -611,40 +665,6 @@ window.RevealjsA11y =
       deckOn("fragmenthidden", announceFragmentHidden);
     }
 
-    // =========================================================================
-    // Language Change Announcements
-    // =========================================================================
-
-    function getLanguageName(code) {
-      try {
-        const locale = document.documentElement.lang || "en";
-        const dn = new Intl.DisplayNames([locale], { type: "language" });
-        return dn.of(code) || code;
-      } catch (_e) {
-        return code;
-      }
-    }
-
-    function onSlideChangedLang() {
-      const currentSlide = deck.getCurrentSlide();
-      if (!currentSlide) return;
-
-      const slideLang =
-        currentSlide.getAttribute("lang") ||
-        document.documentElement.lang ||
-        "en";
-
-      if (currentSlideLang !== null && slideLang !== currentSlideLang) {
-        announceStatus("Language: " + getLanguageName(slideLang));
-      }
-      currentSlideLang = slideLang;
-    }
-
-    function setupLanguageChangeAnnouncements() {
-      deckOn("slidechanged", onSlideChangedLang);
-      onSlideChangedLang();
-    }
-
     function announceStatus(message) {
       let statusEl = revealElement.querySelector(`.${CSS_PREFIX}-status`);
       if (!statusEl) {
@@ -738,6 +758,334 @@ window.RevealjsA11y =
         document.addEventListener("keydown", primeAudioKeydown);
 
         deckOn("slidechanged", playTone);
+      }
+    }
+
+    // =========================================================================
+    // Transcript View
+    // =========================================================================
+
+    function escapeHtml(text) {
+      const el = document.createElement("span");
+      el.textContent = text;
+      return el.innerHTML;
+    }
+
+    function getSlideContent(slide) {
+      const transcriptDiv = slide.querySelector(":scope > .transcript");
+      if (transcriptDiv) {
+        return transcriptDiv.innerHTML;
+      }
+
+      const clone = slide.cloneNode(true);
+      clone.querySelectorAll("aside.notes").forEach((el) => el.remove());
+      clone.querySelectorAll(".transcript").forEach((el) => el.remove());
+      clone
+        .querySelectorAll('[aria-hidden="true"]')
+        .forEach((el) => el.remove());
+      clone
+        .querySelectorAll(".slide-background")
+        .forEach((el) => el.remove());
+
+      const heading = clone.querySelector("h1, h2, h3, h4, h5, h6");
+      if (heading) heading.remove();
+
+      const content = clone.innerHTML.trim();
+      if (!content) {
+        return '<p class="no-content">(No content on this slide.)</p>';
+      }
+      return content;
+    }
+
+    function buildTranscript() {
+      const title =
+        document.title ||
+        (revealElement.querySelector(".slides h1") || {}).textContent ||
+        "Presentation";
+
+      let html = "<h1>" + escapeHtml(title) + "</h1>";
+      let slideNumber = 0;
+
+      const topSections = revealElement.querySelectorAll(
+        ".slides > section",
+      );
+      topSections.forEach((section) => {
+        const nested = section.querySelectorAll(":scope > section");
+        if (nested.length > 0) {
+          nested.forEach((sub) => {
+            slideNumber++;
+            const heading = sub.querySelector("h1, h2, h3, h4, h5, h6");
+            const slideTitle = heading
+              ? escapeHtml(heading.textContent.trim())
+              : "Slide " + slideNumber;
+            html +=
+              "<article><h3>" +
+              slideTitle +
+              "</h3>" +
+              getSlideContent(sub) +
+              "</article>";
+          });
+        } else {
+          slideNumber++;
+          const heading = section.querySelector("h1, h2, h3, h4, h5, h6");
+          const slideTitle = heading
+            ? escapeHtml(heading.textContent.trim())
+            : "Slide " + slideNumber;
+          html +=
+            "<article><h2>" +
+            slideTitle +
+            "</h2>" +
+            getSlideContent(section) +
+            "</article>";
+        }
+      });
+
+      return html;
+    }
+
+    function openTranscript() {
+      transcriptOpen = true;
+      transcriptPreviousFocus = document.activeElement;
+      transcriptPreviousKeyboard = deck.getConfig().keyboard;
+      deck.configure({ keyboard: false });
+
+      const overlay = createElement("div", {
+        class: `${CSS_PREFIX}-transcript`,
+        role: "document",
+        "aria-label": "Presentation transcript",
+      });
+
+      const header = createElement("div", {
+        class: `${CSS_PREFIX}-transcript-header`,
+      });
+      const closeBtn = createElement(
+        "button",
+        {
+          class: `${CSS_PREFIX}-transcript-close`,
+          "aria-label": "Close transcript",
+        },
+        "\u00D7",
+      );
+      closeBtn.addEventListener("click", closeTranscript);
+      header.appendChild(
+        createElement("span", {}, "Transcript"),
+      );
+      header.appendChild(closeBtn);
+      overlay.appendChild(header);
+
+      const body = createElement("div", {
+        class: `${CSS_PREFIX}-transcript-body`,
+      });
+      body.innerHTML = buildTranscript();
+      overlay.appendChild(body);
+
+      transcriptKeyHandler = (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          closeTranscript();
+          return;
+        }
+
+        if (e.key === "Tab") {
+          const focusable = getFocusableElements(overlay);
+          if (focusable.length === 0) return;
+
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      };
+      document.addEventListener("keydown", transcriptKeyHandler);
+
+      document.body.appendChild(overlay);
+      closeBtn.focus();
+      announceStatus("Transcript view opened");
+    }
+
+    function closeTranscript() {
+      const overlay = document.querySelector(`.${CSS_PREFIX}-transcript`);
+      if (overlay) overlay.remove();
+
+      if (transcriptKeyHandler) {
+        document.removeEventListener("keydown", transcriptKeyHandler);
+        transcriptKeyHandler = null;
+      }
+
+      if (transcriptPreviousKeyboard !== null) {
+        deck.configure({ keyboard: transcriptPreviousKeyboard });
+        transcriptPreviousKeyboard = null;
+      }
+
+      if (transcriptPreviousFocus) {
+        transcriptPreviousFocus.focus();
+        transcriptPreviousFocus = null;
+      }
+
+      transcriptOpen = false;
+      announceStatus("Transcript view closed");
+    }
+
+    function toggleTranscript() {
+      if (transcriptOpen) {
+        closeTranscript();
+      } else {
+        openTranscript();
+      }
+    }
+
+    function setupPrintTranscript() {
+      const topSections = revealElement.querySelectorAll(
+        ".slides > section",
+      );
+      topSections.forEach((section) => {
+        const nested = section.querySelectorAll(":scope > section");
+        const targets = nested.length > 0 ? nested : [section];
+        targets.forEach((slide) => {
+          if (slide.querySelector(":scope > .transcript")) return;
+          const div = document.createElement("div");
+          div.className = "transcript";
+          div.innerHTML = getSlideContent(slide);
+          slide.appendChild(div);
+        });
+      });
+    }
+
+    function setupTranscript() {
+      deck.addKeyBinding(
+        { keyCode: 84, key: "T", description: "Open/close transcript view" },
+        toggleTranscript,
+      );
+
+      const printEnabled =
+        storageGet("transcript-print") === "true" || config.transcript.print;
+      if (printEnabled && /print-pdf/i.test(window.location.search)) {
+        setupPrintTranscript();
+      }
+    }
+
+    // =========================================================================
+    // Pointer / Focus Indicator
+    // =========================================================================
+
+    function activatePointer() {
+      pointerActive = true;
+      pointerElement.hidden = false;
+
+      var lastX = 0;
+      var lastY = 0;
+      pointerMoveHandler = (e) => {
+        lastX = e.clientX;
+        lastY = e.clientY;
+        if (!pointerRafId) {
+          pointerRafId = requestAnimationFrame(() => {
+            pointerElement.style.transform =
+              "translate(" +
+              lastX +
+              "px, " +
+              lastY +
+              "px) translate(-50%, -50%)";
+            pointerRafId = null;
+          });
+        }
+      };
+      document.addEventListener("mousemove", pointerMoveHandler);
+
+      pointerFocusHandler = (e) => {
+        const rect = e.target.getBoundingClientRect();
+        if (rect.width === 0 && rect.height === 0) return;
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        pointerElement.style.transform =
+          "translate(" + cx + "px, " + cy + "px) translate(-50%, -50%)";
+      };
+      document.addEventListener("focusin", pointerFocusHandler);
+
+      storageSet("pointer-indicator", "true");
+      announceStatus("Pointer indicator enabled");
+      syncMenuState();
+    }
+
+    function deactivatePointer() {
+      pointerActive = false;
+      pointerElement.hidden = true;
+
+      if (pointerMoveHandler) {
+        document.removeEventListener("mousemove", pointerMoveHandler);
+        pointerMoveHandler = null;
+      }
+      if (pointerFocusHandler) {
+        document.removeEventListener("focusin", pointerFocusHandler);
+        pointerFocusHandler = null;
+      }
+      if (pointerRafId) {
+        cancelAnimationFrame(pointerRafId);
+        pointerRafId = null;
+      }
+
+      storageSet("pointer-indicator", "false");
+      announceStatus("Pointer indicator disabled");
+      syncMenuState();
+    }
+
+    function togglePointer() {
+      if (pointerActive) {
+        deactivatePointer();
+      } else {
+        activatePointer();
+      }
+    }
+
+    function setupPointerIndicator(pointerConfig) {
+      pointerElement = createElement("div", {
+        class: CSS_PREFIX + "-pointer",
+        "aria-hidden": "true",
+      });
+      pointerElement.hidden = true;
+      pointerElement.style.setProperty(
+        "--a11y-pointer-size",
+        pointerConfig.size + "px",
+      );
+      pointerElement.style.setProperty(
+        "--a11y-pointer-colour",
+        pointerConfig.colour,
+      );
+      document.body.appendChild(pointerElement);
+
+      const storedSize = storageGet("pointer-size");
+      if (storedSize) {
+        pointerElement.style.setProperty(
+          "--a11y-pointer-size",
+          storedSize + "px",
+        );
+      }
+
+      const storedColour = storageGet("pointer-colour");
+      if (storedColour) {
+        pointerElement.style.setProperty(
+          "--a11y-pointer-colour",
+          storedColour,
+        );
+      }
+
+      const shortcutKey = pointerConfig.shortcut.toUpperCase();
+      deck.addKeyBinding(
+        {
+          keyCode: shortcutKey.charCodeAt(0),
+          key: shortcutKey,
+          description: "Toggle pointer indicator",
+        },
+        togglePointer,
+      );
+
+      if (storageGet("pointer-indicator") === "true") {
+        activatePointer();
       }
     }
 
@@ -949,6 +1297,40 @@ window.RevealjsA11y =
           "aria-checked",
           String(storageGet("audio-cue") !== "false"),
         );
+      }
+
+      const tpSwitch = menu.querySelector(
+        '[data-setting="transcript-print"]',
+      );
+      if (tpSwitch) {
+        const active =
+          storageGet("transcript-print") === "true" ||
+          config.transcript.print;
+        tpSwitch.setAttribute("aria-checked", String(active));
+      }
+
+      const piSwitch = menu.querySelector(
+        '[data-setting="pointer-indicator"]',
+      );
+      if (piSwitch) {
+        piSwitch.setAttribute("aria-checked", String(pointerActive));
+      }
+
+      const psRange = menu.querySelector('[data-setting="pointer-size"]');
+      if (psRange && config.pointerIndicator) {
+        const size =
+          storageGet("pointer-size") || config.pointerIndicator.size;
+        psRange.value = String(size);
+        psRange.setAttribute("aria-valuenow", String(size));
+        psRange.setAttribute("aria-valuetext", size + "px");
+      }
+
+      const pcSelect = menu.querySelector(
+        '[data-setting="pointer-colour"]',
+      );
+      if (pcSelect && config.pointerIndicator) {
+        pcSelect.value =
+          storageGet("pointer-colour") || config.pointerIndicator.colour;
       }
     }
 
@@ -1502,6 +1884,154 @@ window.RevealjsA11y =
         body.appendChild(fieldset);
       }
 
+      // --- Tools group ---
+      {
+        const hasTools =
+          config.transcript.enabled ||
+          (config.pointerIndicator && config.pointerIndicator.enabled);
+        if (hasTools) {
+          const fieldset = createElement("fieldset", {
+            class: `${CSS_PREFIX}-menu-group`,
+          });
+          fieldset.appendChild(createElement("legend", {}, "Tools"));
+
+          if (config.transcript.enabled) {
+            const transcriptBtn = createElement(
+              "button",
+              {
+                class: `${CSS_PREFIX}-menu-action`,
+                "aria-label": "Open slide transcript",
+              },
+              "Open transcript",
+            );
+            transcriptBtn.addEventListener("click", () => {
+              closeMenu();
+              openTranscript();
+            });
+            const row = createElement("div", {
+              class: `${CSS_PREFIX}-menu-row`,
+            });
+            row.appendChild(transcriptBtn);
+            fieldset.appendChild(row);
+
+            const printActive =
+              storageGet("transcript-print") === "true" ||
+              config.transcript.print;
+            const printRow = createSwitch(
+              "tp",
+              "Print transcript",
+              "transcript-print",
+              printActive,
+            );
+            const printBtn = printRow.querySelector(
+              '[data-setting="transcript-print"]',
+            );
+            printBtn.addEventListener("click", () => {
+              const current =
+                printBtn.getAttribute("aria-checked") === "true";
+              printBtn.setAttribute("aria-checked", String(!current));
+              storageSet("transcript-print", String(!current));
+              announceStatus(
+                !current
+                  ? "Transcript will be included in print"
+                  : "Transcript excluded from print",
+              );
+            });
+            fieldset.appendChild(printRow);
+          }
+
+          if (config.pointerIndicator && config.pointerIndicator.enabled) {
+            const piRow = createSwitch(
+              "pi",
+              "Pointer indicator",
+              "pointer-indicator",
+              pointerActive,
+            );
+            const piBtn = piRow.querySelector(
+              '[data-setting="pointer-indicator"]',
+            );
+            piBtn.addEventListener("click", () => togglePointer());
+            fieldset.appendChild(piRow);
+
+            const storedSize =
+              storageGet("pointer-size") || config.pointerIndicator.size;
+            const sizeRow = createRange(
+              "ps",
+              "Pointer size",
+              "pointer-size",
+              20,
+              200,
+              10,
+              parseInt(storedSize, 10),
+              (v) => v + "px",
+            );
+            const sizeInput = sizeRow.querySelector(
+              '[data-setting="pointer-size"]',
+            );
+            sizeInput.addEventListener("input", () => {
+              const val = parseInt(sizeInput.value, 10);
+              if (pointerElement) {
+                pointerElement.style.setProperty(
+                  "--a11y-pointer-size",
+                  val + "px",
+                );
+              }
+              storageSet("pointer-size", String(val));
+              announceStatus("Pointer size: " + val + "px");
+              syncMenuState();
+            });
+            fieldset.appendChild(sizeRow);
+
+            const colourOptions = [
+              { name: "Blue", value: "rgba(74, 144, 217, 0.4)" },
+              { name: "Yellow", value: "rgba(255, 255, 0, 0.4)" },
+              { name: "Red", value: "rgba(255, 0, 0, 0.3)" },
+              { name: "Green", value: "rgba(0, 200, 100, 0.3)" },
+            ];
+            const storedColour =
+              storageGet("pointer-colour") ||
+              config.pointerIndicator.colour;
+            if (
+              !colourOptions.some((o) => o.value === storedColour)
+            ) {
+              colourOptions.push({
+                name: "Custom",
+                value: storedColour,
+              });
+            }
+            const colourIdx = colourOptions.findIndex(
+              (o) => o.value === storedColour,
+            );
+            const colourRow = createSelect(
+              "pc",
+              "Pointer colour",
+              "pointer-colour",
+              colourOptions,
+              Math.max(colourIdx, 0),
+            );
+            const colourSelect = colourRow.querySelector(
+              '[data-setting="pointer-colour"]',
+            );
+            colourSelect.addEventListener("change", () => {
+              const val = colourSelect.value;
+              if (pointerElement) {
+                pointerElement.style.setProperty(
+                  "--a11y-pointer-colour",
+                  val,
+                );
+              }
+              storageSet("pointer-colour", val);
+              const name =
+                colourOptions.find((o) => o.value === val)?.name || val;
+              announceStatus("Pointer colour: " + name);
+            });
+            fieldset.appendChild(colourRow);
+          }
+
+          body.appendChild(fieldset);
+        }
+      }
+
       menu.appendChild(body);
 
       // Footer
@@ -1669,6 +2199,10 @@ window.RevealjsA11y =
         "colour-overlay",
         "visual-cue",
         "audio-cue",
+        "transcript-print",
+        "pointer-indicator",
+        "pointer-size",
+        "pointer-colour",
       ];
       keys.forEach((key) => {
         try {
@@ -1688,6 +2222,18 @@ window.RevealjsA11y =
       }
       if (config.linkHighlight) {
         revealElement.classList.add(`${CSS_PREFIX}-link-highlight`);
+      }
+
+      if (pointerActive) deactivatePointer();
+      if (pointerElement && config.pointerIndicator) {
+        pointerElement.style.setProperty(
+          "--a11y-pointer-size",
+          config.pointerIndicator.size + "px",
+        );
+        pointerElement.style.setProperty(
+          "--a11y-pointer-colour",
+          config.pointerIndicator.colour,
+        );
       }
 
       announceStatus("All accessibility preferences reset");
@@ -1718,9 +2264,12 @@ window.RevealjsA11y =
         if (config.altTextWarnings) setupAltTextWarnings();
         if (config.announceSlideNumbers) setupSlideAnnouncements();
         if (config.announceFragments) setupFragmentAnnouncements();
-        if (config.announceLanguageChanges) setupLanguageChangeAnnouncements();
         if (config.slideChangeCue.visual || config.slideChangeCue.audio) {
           setupSlideChangeCue(config.slideChangeCue);
+        }
+        if (config.transcript.enabled) setupTranscript();
+        if (config.pointerIndicator && config.pointerIndicator.enabled) {
+          setupPointerIndicator(config.pointerIndicator);
         }
 
         // Restore local font if one was previously selected.
@@ -1798,6 +2347,25 @@ window.RevealjsA11y =
         );
         if (changeIndicator) changeIndicator.remove();
 
+        if (transcriptOpen) closeTranscript();
+        transcriptOpen = false;
+        transcriptPreviousFocus = null;
+        transcriptPreviousKeyboard = null;
+
+        if (pointerActive) {
+          document.removeEventListener("mousemove", pointerMoveHandler);
+          document.removeEventListener("focusin", pointerFocusHandler);
+          if (pointerRafId) cancelAnimationFrame(pointerRafId);
+        }
+        if (pointerElement) {
+          pointerElement.remove();
+          pointerElement = null;
+        }
+        pointerActive = false;
+        pointerMoveHandler = null;
+        pointerFocusHandler = null;
+        pointerRafId = null;
+
         document
           .querySelectorAll("link[data-revealjs-a11y-font]")
           .forEach((el) => el.remove());
@@ -1831,7 +2399,6 @@ window.RevealjsA11y =
         reducedMotionMediaQuery = null;
         reducedMotionListener = null;
         reducedMotionPreviousTransitions = null;
-        currentSlideLang = null;
 
         deckHandlers.forEach(({ event, handler }) => {
           deck.off(event, handler);

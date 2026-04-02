@@ -5,6 +5,8 @@
 ### New Features
 
 - feat: announce language changes to screen readers when navigating between slides with different `lang` attributes (`announce-language-changes` option, enabled by default).
+- feat: add transcript view that linearises slide content into a screen-reader-friendly document (`transcript` option). Authors can provide custom transcript text via `::: {.transcript}` blocks; otherwise the slide's visible content is used. Optionally show transcript below each slide in print-pdf mode with `transcript: {print: true}`.
+- feat: add pointer/focus indicator for low-vision users (`pointer-indicator` option). A configurable spotlight follows the cursor or keyboard focus, with size and colour adjustable from the accessibility menu.
 
 ## 0.1.1 (2026-04-01)
 
