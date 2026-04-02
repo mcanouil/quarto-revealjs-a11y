@@ -20,6 +20,7 @@ format:
       alt-text-warnings: true
       announce-slide-numbers: true
       announce-fragments: true
+      announce-language-changes: true
       slide-menu-a11y: true
       slide-change-cue:
         visual: true
@@ -27,32 +28,90 @@ format:
       menu: true
 ---
 
-## Introduction
+## Introduction {.smaller}
 
-This presentation demonstrates the Reveal.js A11y plugin.
+The **Reveal.js A11y** plugin enhances *accessibility* for keyboard users, screen readers, and users with [visual preferences]{.underline}.
 
-The plugin enhances accessibility for keyboard users, screen readers, and users with visual preferences.
+It follows the [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/) to make presentations usable by everyone.
 
-## Skip Navigation
+This deck demonstrates every feature of the plugin alongside a broad range of Quarto formatting and layout options.
 
-Press {{< kbd "Tab" mode=plain >}} at the start of the presentation to reveal the skip navigation link.
+::: notes
+Welcome to the accessibility plugin demo.
+This presentation is designed to exercise as many Quarto Reveal.js features as possible, so the plugin can be tested against real-world content types.
+:::
 
-This allows keyboard users to jump directly to the slide content.
+## How to Use This Deck
 
-## Focus Indicators
+{{< kbd Tab >}}
+: Skip navigation and focus cycling.
+
+{{< kbd "A" mode=plain >}}
+: Open or close the accessibility settings menu.
+
+{{< kbd "+" mode=plain >}} / {{< kbd "-" mode=plain >}} / {{< kbd "0" mode=plain >}}
+: Increase, decrease, or reset the font size.
+
+{{< kbd Right >}} / {{< kbd Left >}}
+: Navigate between slides.
+
+## Skip Navigation {auto-animate=true}
+
+1. [Press {{< kbd Tab >}} when the presentation loads.]{.fragment .fade-in}
+2. [A "Skip to content" link appears at the top of the page.]{.fragment .fade-in}
+3. [Press {{< kbd Enter >}} to jump past navigation to the slide content.]{.fragment .fade-in}
+
+## Skip Navigation {auto-animate=true}
+
+> A mechanism is available to bypass blocks of content that are repeated on multiple Web pages.
+
+--- WCAG 2.4.1, Bypass Blocks^[See <https://www.w3.org/TR/WCAG22/#bypass-blocks> for the full success criterion.]
+
+## Focus Indicators & Link Highlight {.smaller}
+
+:::: {.columns}
+
+::: {.column width="60%"}
+
+### Focus indicators
 
 Interactive elements receive enhanced focus outlines when navigating with the keyboard.
 
-Try pressing {{< kbd Tab >}} to see the focus indicators on links and buttons:
+Try tabbing through these links:
 
-- [Example link](#).
-- Another [example link](#).
+- [WCAG overview](https://www.w3.org/WAI/standards-guidelines/wcag/).
+- [WAI-ARIA practices](https://www.w3.org/WAI/ARIA/apg/).
 
-## Reduced Motion
+:::
+
+::: {.column width="40%"}
+
+### Link highlight
+
+All links are [underlined by default]{style="text-decoration: underline; text-decoration-thickness: 2px;"} so they are distinguishable without relying on colour alone.
+
+This meets WCAG 1.4.1 (Use of Colour).
+
+:::
+
+::::
+
+## Reduced Motion & Slide Change Cues {.smaller}
+
+::: {.callout-note}
+## Reduced motion
 
 The plugin respects the `prefers-reduced-motion` media query.
-
 When enabled in your operating system settings, all slide transitions are disabled automatically.
+:::
+
+::: {.callout-tip}
+## Slide change cues
+
+A visual sweep appears along the top edge each time you navigate to a new slide.
+An optional audio tone can also be played via `slide-change-cue: {visual: true, audio: true}`.
+:::
+
 
 ## High Contrast Mode
 
@@ -60,98 +119,153 @@ Toggle high contrast mode from the accessibility settings menu.
 
 This switches the presentation to a high contrast colour scheme:
 
-- Black text on white background.
-- Underlined links with standard colours.
-- Bordered code blocks.
+- [Black text on white background.]{.fragment .fade-in}
+- [Underlined links with standard colours.]{.fragment .grow}
+- [Bordered code blocks for clarity.]{.fragment .highlight-red}
+- [All decorative elements simplified.]{.fragment .semi-fade-out}
 
-## Font Size Controls
+::: notes
+The `announce-fragments` feature ensures each of these list items is announced to screen readers as they appear.
+Try navigating with a screen reader enabled to hear the announcements.
+:::
 
-Adjust the font size using keyboard shortcuts:
+## Font Size Controls {.smaller}
 
-- Press {{< kbd "+" mode=plain >}} to increase the font size.
-- Press {{< kbd "-" mode=plain >}} to decrease the font size.
-- Press {{< kbd "0" mode=plain >}} to reset to the default size.
+Adjust the font size using keyboard shortcuts.
+The setting persists across sessions via `localStorage`.
 
-The setting persists across sessions.
+: Font size control shortcuts
+
+| Shortcut | Action | Range |
+|----------|--------|-------|
+| {{< kbd "+" mode=plain >}} | Increase font size | Up to $200\%$ |
+| {{< kbd "-" mode=plain >}} | Decrease font size | Down to $50\%$ |
+| {{< kbd "0" mode=plain >}} | Reset to default | $100\%$ |
+
+The step size is $10\%$ by default and can be configured with `font-size-step`.
 
 ## Font Selection
 
-Select a font family from the accessibility settings menu:
+::: {.panel-tabset}
 
-- Default (presentation theme font).
-- System Sans, Serif, and Mono.
-- Atkinson Hyperlegible (high legibility).
-- Lexend (reduced visual stress).
-- OpenDyslexic (dyslexia-friendly).
+### System Fonts
 
-On Chromium browsers, a system font picker is also available from the menu.
+- System Sans (the operating system default sans-serif).
+- System Serif (the operating system default serif).
+- System Mono (the operating system default monospace).
 
-## Text Spacing
+### Accessible Fonts
 
-Adjust text spacing from the accessibility settings menu:
+- **Atkinson Hyperlegible**: designed for high legibility by the Braille Institute.
+- **Lexend**: reduces visual stress and improves reading performance.
+- **OpenDyslexic**: weighted bottoms help prevent letter rotation for dyslexic readers.
 
-- Line height: five levels (default, then four increments).
-- Letter spacing: five levels (default, then four increments).
+### Local Font Picker
 
-Both settings persist across sessions.
+On Chromium-based browsers, a system font picker is also available from the settings menu.
 
-## Link Highlight
+This uses the Local Font Access API to list all fonts installed on the user's device.
 
-All links are underlined by default so they are distinguishable without relying on colour alone.
+:::
 
-This meets WCAG 1.4.1 (Use of Colour) requirements:
+## Text Spacing {.smaller}
 
-- [This link is underlined](#).
-- [So is this one](#).
+Adjust text spacing from the accessibility settings menu.
+All settings persist across sessions.
 
-## Slide Landmarks
+: Text spacing levels
 
-Each slide is annotated with ARIA landmark roles.
+| Property | Level 0 | Level 1 | Level 2 | Level 3 | Level 4 |
+|----------|---------|---------|---------|---------|---------|
+| Line height | Default | +1 step | +2 steps | +3 steps | +4 steps |
+| Letter spacing | Default | +1 step | +2 steps | +3 steps | +4 steps |
+| Word spacing | Default | +1 step | +2 steps | +3 steps | +4 steps |
 
-Screen readers can navigate between slides using landmark navigation.
+The increment formula is $s_n = s_0 + n \cdot \Delta$ where $s_0$ is the default value, $n$ is the level, and $\Delta$ is the step size.
+
+## Slide Landmarks & Screen Reader Announcements {.smaller}
+
+Each slide is annotated with ARIA landmark roles so screen readers can navigate between them.
+
+```{.yaml}
+revealjs-a11y:
+  slide-landmarks: true # <1>
+  announce-slide-numbers: true # <2>
+  announce-fragments: true # <3>
+```
+
+1. Adds `role="region"` and `aria-label` to each slide.
+2. Announces slide number and title on navigation.
+3. Announces fragment content as it appears.
 
 The current slide is marked with `aria-current="step"`.
+{.aside}
+
+## Language Change Announcements
+
+When navigating between slides with different `lang` attributes, screen readers are notified of the language change.
+
+Set per-slide language using Quarto's attribute syntax:
+
+```{.markdown}
+## Slide Title {lang="fr"}
+```
+
+The plugin reads the `lang` attribute from each slide's `<section>` element and announces changes via an ARIA live region.
+
+::: {.notes}
+This feature uses `Intl.DisplayNames` to resolve human-readable language names.
+Navigate to the next slide to hear a language change announcement.
+:::
+
+## Diapositive en français {lang="fr"}
+
+Cette diapositive est en français.
+Le lecteur d'écran devrait annoncer le changement de langue.
+
+::: {.notes}
+This slide demonstrates language change announcements.
+The `{lang="fr"}` attribute on the heading tells Quarto to set `lang="fr"` on the `<section>`.
+The plugin detects the change and announces it to screen readers.
+:::
 
 ## Alt Text Warnings {.smaller}
 
 Images without alt text are highlighted with a red dashed outline during authoring.
 
-![A placeholder image with alt text](https://placehold.co/400x200){fig-alt="Placeholder image demonstrating proper alt text usage"}
+::: {layout-ncol=2}
 
-![](https://placehold.co/400x200)
+![A placeholder image with alt text](https://placehold.co/400x200){fig-alt="Placeholder image demonstrating proper alt text usage" width="100%"}
 
-The second image above should display a warning because it lacks alt text.
+![](https://placehold.co/400x200){width="100%"}
 
-## Slide Change Cue
+:::
 
-A visual sweep appears along the top edge of the presentation each time you navigate to a new slide.
+::: {.callout-warning}
+## Missing alt text
 
-An optional audio tone can also be played.
-
-This is especially helpful when transitions are disabled (reduced motion), making it clear that the content has changed.
-
-## Screen Reader Announcements
-
-Slide changes are announced to screen readers with the slide number and title.
-
-Navigate between slides to hear the announcements via your screen reader.
+The second image above should display a warning border because it lacks alt text.
+Always provide descriptive alt text for meaningful images.
+:::
 
 ## Accessibility Settings Menu
 
 Press {{< kbd "A" mode=plain >}} to open or close the settings menu.
 
-The menu provides controls for all accessibility features in one place:
+- **Display**
+  - Toggle switches for *high contrast* and *link highlighting*.
+  - *Colour overlay* for reading comfort (none, yellow, blue, pink, green).
+- **Typography**
+  - Sliders for `font-size`, `line-height`, `letter-spacing`, `word-spacing`.
+  - Font family selector.
+- **Cues**
+  - Visual sweep toggle.
+  - Audio tone toggle.
+- **Reset** all preferences to defaults.
 
-- Toggle switches for high contrast and link highlighting.
-- Colour overlay for reading comfort.
-- Sliders for font size, line height, letter spacing, and word spacing.
-- Font family selection.
-- Slide change cue toggles.
-- Reset all preferences.
+## Configuration Reference {.smaller .scrollable}
 
-## Configuration
-
-```yaml
+```{.yaml code-line-numbers="3-5,8-9"}
 format:
   revealjs:
     revealjs-plugins:
@@ -168,10 +282,297 @@ format:
       slide-landmarks: true
       alt-text-warnings: false
       announce-slide-numbers: true
-      slide-change-cue: true
+      slide-change-cue:
+        visual: true
+        audio: true
       menu: true
 ```
 
-## Thank You
+Access the plugin API programmatically:
 
-Learn more at the [GitHub repository](https://github.com/mcanouil/quarto-revealjs-a11y).
+```{.javascript}
+const a11y = Reveal.getPlugin("RevealjsA11y");
+a11y.resetPreferences();
+```
+
+## Why Accessibility Matters {background-color="#2a2a2a"}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+::: {.r-fit-text}
+$1.3$ billion
+:::
+
+people worldwide live with some form of disability.
+
+:::
+
+::: {.column width="50%"}
+
+![Accessibility matters](https://placehold.co/400x300){fig-alt="A placeholder representing the universal accessibility symbol."}
+
+:::
+
+::::
+
+## WCAG at a Glance
+
+The four principles of the Web Content Accessibility Guidelines:
+
+```{mermaid}
+%%| fig-alt: "Flowchart showing the four WCAG principles: Perceivable, Operable, Understandable, and Robust."
+flowchart LR
+  A[Perceivable] --> B[Operable]
+  B --> C[Understandable]
+  C --> D[Robust]
+```
+
+::: notes
+- **Perceivable**: information must be presentable in ways users can perceive.
+- **Operable**: interface components must be operable by all users.
+- **Understandable**: information and operation must be understandable.
+- **Robust**: content must be robust enough for diverse user agents and assistive technologies.
+:::
+
+## Common Barriers in Presentations {.smaller}
+
+::: {.callout-caution}
+## What to avoid
+
+- ~~Relying on colour alone to convey meaning~~.
+- Missing alt text on images^[WCAG 1.1.1 requires text alternatives for all non-text content.].
+- Low contrast text (below a ratio of 4.5:1).
+- Inaccessible form controls, like H~2~O formulas without proper markup.
+:::
+
+::: {.callout-important}
+## What to do instead
+
+- Use text labels, patterns, or icons alongside colour.
+- Provide descriptive alt text for every meaningful image.
+- Ensure sufficient colour contrast.
+- Use semantic HTML and ARIA attributes.
+:::
+
+## Building Accessible Slides {auto-animate=true}
+
+```{.markdown code-line-numbers="2"}
+![A descriptive caption](image.png){
+  fig-alt="Detailed description for screen readers."
+}
+```
+
+## Building Accessible Slides {auto-animate=true}
+
+```{.markdown code-line-numbers="2-3"}
+![A descriptive caption](image.png){
+  fig-alt="Detailed description for screen readers."
+  width="80%"
+}
+```
+
+. . .
+
+Every image deserves a description.
+
+## Colour and Contrast
+
+::: {.r-stack}
+
+::: {.fragment .fade-in-then-out}
+::: {style="background: #1a1a1a; color: #ffffff; padding: 2em; border-radius: 0.5em; width: 80%; text-align: center;"}
+**Good contrast**: white text on dark background (ratio 15.3:1).
+:::
+:::
+
+::: {.fragment .fade-in-then-out}
+::: {style="background: #ffffff; color: #767676; padding: 2em; border-radius: 0.5em; width: 80%; text-align: center;"}
+**Minimum contrast**: grey text on white background (ratio 4.5:1).
+:::
+:::
+
+::: {.fragment .fade-in}
+::: {style="background: #ffffff; color: #d4d4d4; padding: 2em; border-radius: 0.5em; width: 80%; text-align: center;"}
+**Poor contrast**: light grey on white (ratio 1.6:1). Avoid this.
+:::
+:::
+
+:::
+
+## Semantic Structure {.smaller}
+
+Use semantic [HTML]{.smallcaps} elements to provide structure that assistive technologies can interpret.
+
+```{.html}
+<section role="region" aria-label="Introduction"> <!-- <1> -->
+  <h2>Welcome</h2>
+  <nav aria-label="Slide navigation"> <!-- <2> -->
+    <a href="#next">Next slide</a>
+  </nav>
+  <main> <!-- <3> -->
+    <p>Slide content goes here.</p>
+  </main>
+</section>
+```
+
+1. Each slide is a region landmark with an accessible name.
+2. Navigation elements are marked with `nav` and labelled.
+3. Main content is wrapped in a `main` element.
+
+## Keyboard Navigation Patterns {.smaller}
+
+See also [How to Use This Deck](#how-to-use-this-deck) for plugin-specific shortcuts.
+
+: Standard Reveal.js keyboard interactions
+
+| Key | Action |
+|-----|--------|
+| {{< kbd Right >}} / {{< kbd Left >}} | Next / previous slide. |
+| {{< kbd Up >}} / {{< kbd Down >}} | Next / previous vertical slide. |
+| {{< kbd "F" mode=plain >}} | Toggle fullscreen. |
+| {{< kbd "S" mode=plain >}} | Open speaker notes view. |
+| {{< kbd Escape >}} | Toggle overview mode. |
+| {{< kbd "." mode=plain >}} | Pause the presentation. |
+
+## Incremental Content {.center}
+
+::: {.incremental}
+
+- Incremental lists reveal items one at a time.
+- This is distinct from fragments, which can apply to any element.
+- Each item is announced to screen readers as it appears.
+
+:::
+
+::: {.nonincremental}
+
+- This list appears all at once.
+- It uses the `.nonincremental` class to override.
+
+:::
+
+## Testing with Screen Readers {.smaller}
+
+1. **Enable a screen reader** on your platform:
+   - macOS: VoiceOver ({{< kbd "Cmd+F5" mode=plain >}}).
+   - Windows: [NVDA](https://www.nvaccess.org/) (free) or Narrator.
+   - Linux: [Orca](https://help.gnome.org/users/orca/stable/).
+2. **Navigate the presentation** using {{< kbd Tab >}} and arrow keys.
+3. **Verify announcements**:
+   - Slide numbers and titles are read aloud.
+   - Fragment content is announced as it appears.
+   - Landmark navigation works between slides.
+4. **Check the settings menu**:
+   - All controls must be operable via keyboard alone.
+
+## Code Accessibility {.smaller}
+
+Syntax highlighting helps sighted users read code, but screen readers need semantic markup too.
+
+```{.python}
+def check_contrast(foreground: str, background: str) -> bool:
+    """Check whether two colours meet WCAG AA contrast requirements."""
+    ratio = calculate_contrast_ratio(foreground, background)
+    return ratio >= 4.5
+```
+
+```{.r}
+check_contrast <- function(foreground, background) {
+  ratio <- calculate_contrast_ratio(foreground, background)
+  ratio >= 4.5
+}
+```
+
+```{.javascript code-line-numbers="2"}
+function addAriaLabel(element, label) {
+  element.setAttribute("aria-label", label);
+}
+```
+
+## Mathematical Content in Slides {.smaller}
+
+Mathematical notation can pose accessibility challenges.
+Inline example: the contrast ratio is defined as $\frac{L_1 + 0.05}{L_2 + 0.05}$ where $L_1 \geq L_2$.
+
+The WCAG relative luminance formula:
+
+$$L = 0.2126 \cdot R_{\text{sRGB}} + 0.7152 \cdot G_{\text{sRGB}} + 0.0722 \cdot B_{\text{sRGB}}$$
+
+MathJax and KaTeX generate accessible MathML, which screen readers can interpret.
+{.aside}
+
+## Background Images {background-image="https://placehold.co/1920x1080" background-opacity="0.15"}
+
+Background images should be used with care.
+
+- Ensure sufficient contrast between text and the background.
+- Use `background-opacity` to reduce visual noise.
+- Background images are decorative and do not receive alt text.
+
+When the `reduced-motion` feature is active, parallax backgrounds are also disabled.
+
+## Fitting Text to Slides
+
+::: {.r-fit-text}
+Accessibility is not optional.
+:::
+
+![A placeholder image stretched to fill remaining space](https://placehold.co/800x200){.r-stretch fig-alt="A wide placeholder image demonstrating the r-stretch class."}
+
+## Per-Slide Transitions {transition="zoom"}
+
+This slide uses a `zoom` transition instead of the default.
+
+When the `reduced-motion` feature is active, this transition is automatically disabled and replaced with an instant change.
+
+The visual sweep cue still fires to confirm the slide has changed.
+
+## Summary of A11y Features {.smaller .scrollable}
+
+: Plugin feature reference
+
+| Feature | Default | Description |
+|---------|---------|-------------|
+| `skip-navigation` | `true` | Adds a skip-to-content link for keyboard users. |
+| `focus-indicators` | `true` | Enhanced 3px blue outlines on interactive elements. |
+| `reduced-motion` | `true` | Disables transitions when OS prefers reduced motion. |
+| `high-contrast` | `false` | Black text on white, bordered code blocks. |
+| `font-size-controls` | `true` | Keyboard shortcuts (+, -, 0) for font size. |
+| `font-selection` | `true` | Font family chooser in the settings menu. |
+| `text-spacing` | `true` | Line height, letter spacing, word spacing controls. |
+| `link-highlight` | `true` | Underlines all links by default (WCAG 1.4.1). |
+| `slide-landmarks` | `true` | ARIA landmark roles on each slide. |
+| `alt-text-warnings` | `false` | Red dashed outline on images missing alt text. |
+| `announce-slide-numbers` | `true` | Screen reader announces slide number and title. |
+| `announce-fragments` | `true` | Screen reader announces fragment content. |
+| `slide-menu-a11y` | `true` | Patches reveal.js-menu for screen readers. |
+| `slide-change-cue` | `true` | Visual sweep and optional audio tone on navigation. |
+| `menu` | `true` | Accessibility settings menu (press A). |
+
+## Resources & Further Reading
+
+- [WCAG 2.2 specification](https://www.w3.org/TR/WCAG22/)^[The current stable version of the Web Content Accessibility Guidelines.].
+- [WAI-ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/).
+- [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/).
+- [Inclusive Design Principles](https://inclusivedesignprinciples.info/).
+- [Reveal.js A11y Plugin](https://github.com/mcanouil/quarto-revealjs-a11y)^[The source repository for this accessibility plugin.].
+
+## Thank You {background-color="#2a2a2a"}
+
+**Reveal.js A11y Plugin**
+
+---
+
+Learn more and contribute at the [GitHub repository](https://github.com/mcanouil/quarto-revealjs-a11y).
+
+Accessibility benefits everyone.
+
+## Credits {visibility="uncounted"}
+
+This plugin was created by [Mickaël Canouil](https://mickael.canouil.fr/).
+
+It is released under the [MIT Licence](https://opensource.org/licenses/MIT).
+
+Special thanks to the Quarto and Reveal.js communities for their work on accessible web technologies.
