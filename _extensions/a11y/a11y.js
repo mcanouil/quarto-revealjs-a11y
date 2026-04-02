@@ -315,8 +315,8 @@ window.RevealjsA11y =
       syncMenuState();
     }
 
-    function setupHighContrast() {
-      const stored = storageGet("high-contrast");
+    function setupHighContrast(skipStorage) {
+      const stored = skipStorage ? null : storageGet("high-contrast");
       if (stored === "true" || (stored === null && config.highContrast)) {
         revealElement.classList.add(`${CSS_PREFIX}-high-contrast`);
       }
@@ -968,6 +968,71 @@ window.RevealjsA11y =
       if (printEnabled && /print-pdf/i.test(window.location.search)) {
         setupPrintTranscript();
       }
+    }
+
+    // =========================================================================
+    // Print Fragment Separation
+    // =========================================================================
+
+    function setupPrintFragments() {
+      var globalSeparate = deck.getConfig().pdfSeparateFragments;
+      var slides = revealElement.querySelectorAll(
+        ".slides > section, .slides > section > section",
+      );
+      slides.forEach(function (slide) {
+        var forceSeparate = slide.hasAttribute("data-pdf-separate");
+        var forceNoSeparate = slide.hasAttribute("data-pdf-no-separate");
+
+        var shouldSeparate =
+          (globalSeparate && !forceNoSeparate) || forceSeparate;
+
+        if (!shouldSeparate) {
+          slide.querySelectorAll(".fragment").forEach(function (f) {
+            f.classList.add("visible");
+            f.style.opacity = "1";
+            f.style.visibility = "visible";
+          });
+          return;
+        }
+
+        var fragments = Array.from(slide.querySelectorAll(".fragment"));
+        if (fragments.length === 0) return;
+
+        var indexSet = {};
+        fragments.forEach(function (f) {
+          var idx = parseInt(
+            f.getAttribute("data-fragment-index") || "0",
+            10,
+          );
+          indexSet[idx] = true;
+        });
+        var indices = Object.keys(indexSet)
+          .map(Number)
+          .sort(function (a, b) {
+            return a - b;
+          });
+
+        var parent = slide.parentNode;
+        indices.forEach(function (idx) {
+          var clone = slide.cloneNode(true);
+          clone.querySelectorAll(".fragment").forEach(function (f) {
+            var fi = parseInt(
+              f.getAttribute("data-fragment-index") || "0",
+              10,
+            );
+            if (fi <= idx) {
+              f.classList.add("visible");
+              f.style.opacity = "1";
+              f.style.visibility = "visible";
+            } else {
+              f.style.opacity = "0";
+              f.style.visibility = "hidden";
+            }
+          });
+          parent.insertBefore(clone, slide);
+        });
+        slide.remove();
+      });
     }
 
     // =========================================================================
@@ -2251,46 +2316,68 @@ window.RevealjsA11y =
         deck = reveal;
         config = resolveConfig(deck.getConfig());
         revealElement = deck.getRevealElement();
+        const isPrintPdf = /print-pdf/i.test(window.location.search);
 
-        if (config.skipNavigation) setupSkipNavigation();
-        if (config.focusIndicators) setupFocusIndicators();
-        if (config.reducedMotion) setupReducedMotion();
-        setupHighContrast();
-        if (config.fontSizeControls) setupFontSizeControls();
-        if (config.fontSelection) setupFontSelection();
-        if (config.textSpacing) setupTextSpacing();
+        if (!isPrintPdf) {
+          if (config.skipNavigation) setupSkipNavigation();
+          if (config.focusIndicators) setupFocusIndicators();
+          if (config.reducedMotion) setupReducedMotion();
+        }
+        setupHighContrast(isPrintPdf);
+        if (!isPrintPdf) {
+          if (config.fontSizeControls) setupFontSizeControls();
+          if (config.fontSelection) setupFontSelection();
+          if (config.textSpacing) setupTextSpacing();
+        }
         setupLinkHighlight();
         if (config.slideLandmarks) setupSlideLandmarks();
         if (config.altTextWarnings) setupAltTextWarnings();
         if (config.announceSlideNumbers) setupSlideAnnouncements();
         if (config.announceFragments) setupFragmentAnnouncements();
-        if (config.slideChangeCue.visual || config.slideChangeCue.audio) {
+        if (
+          !isPrintPdf &&
+          (config.slideChangeCue.visual || config.slideChangeCue.audio)
+        ) {
           setupSlideChangeCue(config.slideChangeCue);
         }
         if (config.transcript.enabled) setupTranscript();
-        if (config.pointerIndicator && config.pointerIndicator.enabled) {
+        if (
+          !isPrintPdf &&
+          config.pointerIndicator &&
+          config.pointerIndicator.enabled
+        ) {
           setupPointerIndicator(config.pointerIndicator);
         }
 
-        // Restore local font if one was previously selected.
-        const storedLocalFont = storageGet("local-font");
-        const storedFamilyIdx = storageGet("font-family");
-        if (storedLocalFont && storedFamilyIdx === "-1") {
-          applyLocalFont(storedLocalFont);
+        if (!isPrintPdf) {
+          // Restore local font if one was previously selected.
+          const storedLocalFont = storageGet("local-font");
+          const storedFamilyIdx = storageGet("font-family");
+          if (storedLocalFont && storedFamilyIdx === "-1") {
+            applyLocalFont(storedLocalFont);
+          }
+
+          // Restore colour overlay if one was previously selected.
+          const storedOverlay = storageGet("colour-overlay");
+          if (storedOverlay && storedOverlay !== "none") {
+            revealElement.style.setProperty(
+              "--a11y-overlay-colour",
+              storedOverlay,
+            );
+            revealElement.classList.add(`${CSS_PREFIX}-colour-overlay`);
+          }
+
+          if (config.menu.enabled) setupMenu(config.menu);
+          if (config.slideMenuA11y) setupSlideMenuA11y();
         }
 
-        // Restore colour overlay if one was previously selected.
-        const storedOverlay = storageGet("colour-overlay");
-        if (storedOverlay && storedOverlay !== "none") {
-          revealElement.style.setProperty(
-            "--a11y-overlay-colour",
-            storedOverlay,
-          );
-          revealElement.classList.add(`${CSS_PREFIX}-colour-overlay`);
+        if (isPrintPdf) {
+          setupPrintFragments();
+          if (!document.title) {
+            const h1 = revealElement.querySelector(".slides h1");
+            if (h1) document.title = h1.textContent.trim();
+          }
         }
-
-        if (config.menu.enabled) setupMenu(config.menu);
-        if (config.slideMenuA11y) setupSlideMenuA11y();
       },
 
       destroy: () => {

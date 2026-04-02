@@ -109,6 +109,15 @@ On Chromium-based browsers (Chrome, Edge), a local font picker is available as a
 
 User preferences (high contrast, font size, font family, text spacing, link highlight, colour overlay, and slide cue toggles) are saved to `localStorage` and persist across sessions and page reloads.
 
+### Print to PDF
+
+When using `?print-pdf`, the plugin resets user preferences (font size, spacing, colours) so the PDF reflects the author's design.
+Interactive elements (menu, pointer, skip link) are hidden.
+Slide backgrounds, code blocks, tables, and callouts retain their styling.
+
+Add `{pdf-separate}` to a slide heading to generate separate pages per fragment state (useful for overlaying fragments like `fade-in-then-out`).
+Add `{pdf-no-separate}` to override the global `pdf-separate-fragments` setting for a specific slide.
+
 ## Example
 
 Here is the source code for a minimal example: [example.qmd](example.qmd).
