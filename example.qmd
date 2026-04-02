@@ -20,6 +20,7 @@ format:
       alt-text-warnings: true
       announce-slide-numbers: true
       announce-fragments: true
+      announce-language-changes: true
       slide-menu-a11y: true
       slide-change-cue:
         visual: true
@@ -199,6 +200,34 @@ revealjs-a11y:
 
 The current slide is marked with `aria-current="step"`.
 {.aside}
+
+## Language Change Announcements
+
+When navigating between slides with different `lang` attributes, screen readers are notified of the language change.
+
+Set per-slide language using Quarto's attribute syntax:
+
+```{.markdown}
+## Slide Title {lang="fr"}
+```
+
+The plugin reads the `lang` attribute from each slide's `<section>` element and announces changes via an ARIA live region.
+
+::: {.notes}
+This feature uses `Intl.DisplayNames` to resolve human-readable language names.
+Navigate to the next slide to hear a language change announcement.
+:::
+
+## Diapositive en français {lang="fr"}
+
+Cette diapositive est en français.
+Le lecteur d'écran devrait annoncer le changement de langue.
+
+::: {.notes}
+This slide demonstrates language change announcements.
+The `{lang="fr"}` attribute on the heading tells Quarto to set `lang="fr"` on the `<section>`.
+The plugin detects the change and announces it to screen readers.
+:::
 
 ## Alt Text Warnings {.smaller}
 
