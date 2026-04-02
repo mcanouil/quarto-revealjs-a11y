@@ -568,11 +568,114 @@
 }
 
 @media print {
+  /* Hide all interactive/runtime UI elements */
   .revealjs-a11y-menu,
   .revealjs-a11y-menu-backdrop,
-  .revealjs-a11y-transcript,
-  .revealjs-a11y-pointer {
+  .revealjs-a11y-skip-link,
+  .revealjs-a11y-slide-change-indicator,
+  .revealjs-a11y-status,
+  .revealjs-a11y-font-dialog,
+  .revealjs-a11y-pointer,
+  .revealjs-a11y-captions,
+  .revealjs-a11y-transcript {
     display: none !important;
+  }
+
+  /* Reset user preference overrides */
+  .reveal .slides {
+    font-size: unset !important;
+  }
+
+  .reveal {
+    --a11y-font-override: unset !important;
+    --a11y-line-height: unset !important;
+    --a11y-letter-spacing: unset !important;
+    --a11y-word-spacing: unset !important;
+    --a11y-overlay-colour: transparent !important;
+  }
+
+  .revealjs-a11y-colour-overlay .slides::after {
+    display: none !important;
+  }
+
+  /* Keep link underlines in print */
+  .revealjs-a11y-link-highlight .reveal a {
+    text-decoration: underline;
+  }
+
+  /* Force background colour/image printing */
+  .reveal,
+  .reveal * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Prevent slides from breaking across pages */
+  .reveal .slides > section,
+  .reveal .slides > section > section {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .reveal .slides > section {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  .reveal .slides > section:first-child {
+    page-break-before: avoid !important;
+    break-before: auto !important;
+  }
+
+  /* Preserve code block styling */
+  .reveal pre,
+  .reveal code {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Prevent images from being cut off */
+  .reveal img {
+    max-width: 100% !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Preserve table styling */
+  .reveal table {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .reveal table th,
+  .reveal table td {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Preserve callout block styling */
+  .reveal .callout {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Show all fragments by default (JS handles per-slide separation) */
+  .reveal .fragment {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* Remove transitions and animations */
+  .reveal *,
+  .reveal *::before,
+  .reveal *::after {
+    transition: none !important;
+    animation: none !important;
   }
 }
 

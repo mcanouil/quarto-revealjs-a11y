@@ -485,6 +485,22 @@ See also [How to Use This Deck](#how-to-use-this-deck) for plugin-specific short
 
 :::
 
+## Overlaying Fragments (PDF Separate) {data-pdf-separate="true"}
+
+::: {.fragment .fade-in-then-out}
+**First view** -- this content replaces the next.
+:::
+
+::: {.fragment .fade-in-then-out}
+**Second view** -- each fragment gets its own page in print-pdf mode.
+:::
+
+::: {.notes}
+This slide uses `{pdf-separate}` to generate separate pages per fragment
+state in print-pdf mode, useful for overlaying content like
+`fade-in-then-out` fragments.
+:::
+
 ## Testing with Screen Readers {.smaller}
 
 1. **Enable a screen reader** on your platform:
