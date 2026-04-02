@@ -20,6 +20,7 @@ format:
       alt-text-warnings: true
       announce-slide-numbers: true
       announce-fragments: true
+      transcript: true
       slide-menu-a11y: true
       slide-change-cue:
         visual: true
@@ -217,6 +218,23 @@ Images without alt text are highlighted with a red dashed outline during authori
 
 The second image above should display a warning border because it lacks alt text.
 Always provide descriptive alt text for meaningful images.
+:::
+
+## Transcript View
+
+Press {{< kbd "T" mode=plain >}} to open a linearised transcript of the presentation.
+
+The transcript uses explicit `::: {.transcript}` blocks when provided, otherwise it falls back to the slide's visible content.
+Speaker notes are never included.
+
+::: {.transcript}
+This is an explicitly authored transcript for the transcript view slide.
+It demonstrates how authors can provide custom transcript text that is more descriptive than the slide's visual content.
+:::
+
+::: {.notes}
+The transcript view is useful for screen reader users and anyone who prefers a linear reading experience.
+Press T to open it, Escape to close.
 :::
 
 ## Accessibility Settings Menu

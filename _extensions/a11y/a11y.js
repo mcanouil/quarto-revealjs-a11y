@@ -28,6 +28,7 @@ window.RevealjsA11y =
       announceSlideNumbers: true,
       announceFragments: true,
       slideChangeCue: { visual: true, audio: false },
+      transcript: { enabled: true, print: false },
       slideMenuA11y: true,
       fontSizeStep: 10,
       fontSizeMin: 50,
@@ -78,6 +79,10 @@ window.RevealjsA11y =
     let primeAudioKeydown = null;
     let slideMenuObserver = null;
     let slideMenuClassObserver = null;
+    let transcriptOpen = false;
+    let transcriptPreviousFocus = null;
+    let transcriptPreviousKeyboard = null;
+    let transcriptKeyHandler = null;
     const deckHandlers = [];
 
     function deckOn(event, handler) {
@@ -132,12 +137,30 @@ window.RevealjsA11y =
       return fallback;
     }
 
+    function normaliseTranscript(value, fallback) {
+      if (typeof value === "boolean") {
+        return { enabled: value, print: false };
+      }
+      if (value && typeof value === "object") {
+        return {
+          enabled:
+            value.enabled !== undefined ? value.enabled : fallback.enabled,
+          print: value.print !== undefined ? value.print : fallback.print,
+        };
+      }
+      return fallback;
+    }
+
     function resolveConfig(revealConfig) {
       const userConfig = revealConfig["revealjs-a11y"] || {};
       const merged = Object.assign({}, DEFAULT_CONFIG, normaliseKeys(userConfig));
       merged.slideChangeCue = normaliseCue(
         merged.slideChangeCue,
         DEFAULT_CONFIG.slideChangeCue,
+      );
+      merged.transcript = normaliseTranscript(
+        merged.transcript,
+        DEFAULT_CONFIG.transcript,
       );
       merged.menu = normaliseMenu(merged.menu, DEFAULT_CONFIG.menu);
       merged.fontSizeStep = Math.max(1, merged.fontSizeStep || DEFAULT_CONFIG.fontSizeStep);
@@ -705,6 +728,188 @@ window.RevealjsA11y =
     }
 
     // =========================================================================
+    // Transcript View
+    // =========================================================================
+
+    function getSlideContent(slide) {
+      const transcriptDiv = slide.querySelector(":scope > .transcript");
+      if (transcriptDiv) {
+        return transcriptDiv.innerHTML;
+      }
+
+      const clone = slide.cloneNode(true);
+      clone.querySelectorAll("aside.notes").forEach((el) => el.remove());
+      clone.querySelectorAll(".transcript").forEach((el) => el.remove());
+      clone
+        .querySelectorAll('[aria-hidden="true"]')
+        .forEach((el) => el.remove());
+      clone
+        .querySelectorAll(".slide-background")
+        .forEach((el) => el.remove());
+
+      const heading = clone.querySelector("h1, h2, h3, h4, h5, h6");
+      if (heading) heading.remove();
+
+      const content = clone.innerHTML.trim();
+      if (!content) {
+        return '<p class="no-content">(No content on this slide.)</p>';
+      }
+      return content;
+    }
+
+    function buildTranscript() {
+      const title =
+        document.title ||
+        (revealElement.querySelector(".slides h1") || {}).textContent ||
+        "Presentation";
+
+      let html = "<h1>" + title + "</h1>";
+      let slideNumber = 0;
+
+      const topSections = revealElement.querySelectorAll(
+        ".slides > section",
+      );
+      topSections.forEach((section) => {
+        const nested = section.querySelectorAll(":scope > section");
+        if (nested.length > 0) {
+          nested.forEach((sub) => {
+            slideNumber++;
+            const heading = sub.querySelector("h1, h2, h3, h4, h5, h6");
+            const slideTitle = heading
+              ? heading.textContent.trim()
+              : "Slide " + slideNumber;
+            html +=
+              "<article><h3>" +
+              slideTitle +
+              "</h3>" +
+              getSlideContent(sub) +
+              "</article>";
+          });
+        } else {
+          slideNumber++;
+          const heading = section.querySelector("h1, h2, h3, h4, h5, h6");
+          const slideTitle = heading
+            ? heading.textContent.trim()
+            : "Slide " + slideNumber;
+          html +=
+            "<article><h2>" +
+            slideTitle +
+            "</h2>" +
+            getSlideContent(section) +
+            "</article>";
+        }
+      });
+
+      return html;
+    }
+
+    function openTranscript() {
+      transcriptOpen = true;
+      transcriptPreviousFocus = document.activeElement;
+      transcriptPreviousKeyboard = deck.getConfig().keyboard;
+      deck.configure({ keyboard: false });
+
+      const overlay = createElement("div", {
+        class: `${CSS_PREFIX}-transcript`,
+        role: "document",
+        "aria-label": "Presentation transcript",
+      });
+
+      const header = createElement("div", {
+        class: `${CSS_PREFIX}-transcript-header`,
+      });
+      const closeBtn = createElement(
+        "button",
+        {
+          class: `${CSS_PREFIX}-transcript-close`,
+          "aria-label": "Close transcript",
+        },
+        "\u00D7",
+      );
+      closeBtn.addEventListener("click", closeTranscript);
+      header.appendChild(
+        createElement("span", {}, "Transcript"),
+      );
+      header.appendChild(closeBtn);
+      overlay.appendChild(header);
+
+      const body = createElement("div", {
+        class: `${CSS_PREFIX}-transcript-body`,
+      });
+      body.innerHTML = buildTranscript();
+      overlay.appendChild(body);
+
+      transcriptKeyHandler = (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          closeTranscript();
+        }
+      };
+      document.addEventListener("keydown", transcriptKeyHandler);
+
+      document.body.appendChild(overlay);
+      closeBtn.focus();
+      announceStatus("Transcript view opened");
+    }
+
+    function closeTranscript() {
+      const overlay = document.querySelector(`.${CSS_PREFIX}-transcript`);
+      if (overlay) overlay.remove();
+
+      if (transcriptKeyHandler) {
+        document.removeEventListener("keydown", transcriptKeyHandler);
+        transcriptKeyHandler = null;
+      }
+
+      if (transcriptPreviousKeyboard !== null) {
+        deck.configure({ keyboard: transcriptPreviousKeyboard });
+        transcriptPreviousKeyboard = null;
+      }
+
+      if (transcriptPreviousFocus) {
+        transcriptPreviousFocus.focus();
+        transcriptPreviousFocus = null;
+      }
+
+      transcriptOpen = false;
+      announceStatus("Transcript view closed");
+    }
+
+    function toggleTranscript() {
+      if (transcriptOpen) {
+        closeTranscript();
+      } else {
+        openTranscript();
+      }
+    }
+
+    function setupPrintTranscript() {
+      const slides = revealElement.querySelectorAll(
+        ".slides > section, .slides > section > section",
+      );
+      slides.forEach((slide) => {
+        if (slide.querySelector(":scope > .transcript")) return;
+        const div = document.createElement("div");
+        div.className = "transcript";
+        div.innerHTML = getSlideContent(slide);
+        slide.appendChild(div);
+      });
+    }
+
+    function setupTranscript() {
+      deck.addKeyBinding(
+        { keyCode: 84, key: "T", description: "Open/close transcript view" },
+        toggleTranscript,
+      );
+
+      const printEnabled =
+        storageGet("transcript-print") === "true" || config.transcript.print;
+      if (printEnabled && /print-pdf/i.test(window.location.search)) {
+        setupPrintTranscript();
+      }
+    }
+
+    // =========================================================================
     // Local Font Picker (progressive enhancement, Chromium only)
     // =========================================================================
 
@@ -912,6 +1117,16 @@ window.RevealjsA11y =
           "aria-checked",
           String(storageGet("audio-cue") !== "false"),
         );
+      }
+
+      const tpSwitch = menu.querySelector(
+        '[data-setting="transcript-print"]',
+      );
+      if (tpSwitch) {
+        const active =
+          storageGet("transcript-print") === "true" ||
+          config.transcript.print;
+        tpSwitch.setAttribute("aria-checked", String(active));
       }
     }
 
@@ -1465,6 +1680,64 @@ window.RevealjsA11y =
         body.appendChild(fieldset);
       }
 
+      // --- Tools group ---
+      {
+        const hasTools = config.transcript.enabled;
+        if (hasTools) {
+          const fieldset = createElement("fieldset", {
+            class: `${CSS_PREFIX}-menu-group`,
+          });
+          fieldset.appendChild(createElement("legend", {}, "Tools"));
+
+          if (config.transcript.enabled) {
+            const transcriptBtn = createElement(
+              "button",
+              {
+                class: `${CSS_PREFIX}-menu-action`,
+                "aria-label": "Open slide transcript",
+              },
+              "Open transcript",
+            );
+            transcriptBtn.addEventListener("click", () => {
+              closeMenu();
+              openTranscript();
+            });
+            const row = createElement("div", {
+              class: `${CSS_PREFIX}-menu-row`,
+            });
+            row.appendChild(transcriptBtn);
+            fieldset.appendChild(row);
+
+            const printActive =
+              storageGet("transcript-print") === "true" ||
+              config.transcript.print;
+            const printRow = createSwitch(
+              "tp",
+              "Print transcript",
+              "transcript-print",
+              printActive,
+            );
+            const printBtn = printRow.querySelector(
+              '[data-setting="transcript-print"]',
+            );
+            printBtn.addEventListener("click", () => {
+              const current =
+                printBtn.getAttribute("aria-checked") === "true";
+              printBtn.setAttribute("aria-checked", String(!current));
+              storageSet("transcript-print", String(!current));
+              announceStatus(
+                !current
+                  ? "Transcript will be included in print"
+                  : "Transcript excluded from print",
+              );
+            });
+            fieldset.appendChild(printRow);
+          }
+
+          body.appendChild(fieldset);
+        }
+      }
+
       menu.appendChild(body);
 
       // Footer
@@ -1632,6 +1905,7 @@ window.RevealjsA11y =
         "colour-overlay",
         "visual-cue",
         "audio-cue",
+        "transcript-print",
       ];
       keys.forEach((key) => {
         try {
@@ -1684,6 +1958,7 @@ window.RevealjsA11y =
         if (config.slideChangeCue.visual || config.slideChangeCue.audio) {
           setupSlideChangeCue(config.slideChangeCue);
         }
+        if (config.transcript.enabled) setupTranscript();
 
         // Restore local font if one was previously selected.
         const storedLocalFont = storageGet("local-font");
@@ -1759,6 +2034,11 @@ window.RevealjsA11y =
           `.${CSS_PREFIX}-slide-change-indicator`,
         );
         if (changeIndicator) changeIndicator.remove();
+
+        if (transcriptOpen) closeTranscript();
+        transcriptOpen = false;
+        transcriptPreviousFocus = null;
+        transcriptPreviousKeyboard = null;
 
         document
           .querySelectorAll("link[data-revealjs-a11y-font]")

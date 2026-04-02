@@ -62,6 +62,10 @@ options:
     type: boolean
     default: true
     description: "Announce fragment content to screen readers when shown or hidden."
+  transcript:
+    type: [boolean, object]
+    default: true
+    description: "Enable a transcript view. Use `true` for interactive overlay only, `false` to disable, or an object with `print` (boolean, default false) to also show transcript below each slide in print-pdf mode."
   slide-menu-a11y:
     type: boolean
     default: true

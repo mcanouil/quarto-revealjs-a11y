@@ -61,6 +61,7 @@ format:
 | `alt-text-warnings`      | boolean          | `false`                        | Highlight images missing alt text (useful during authoring).                                                                                        |
 | `announce-slide-numbers` | boolean          | `true`                         | Announce slide numbers (with total) and titles to screen readers.                                                                                   |
 | `announce-fragments`     | boolean          | `true`                         | Announce fragment content to screen readers when shown or hidden.                                                                                   |
+| `transcript`             | boolean / object | `true`                         | Transcript view. `true` enables overlay only; `false` disables; or use `{print: true}` to also show below slides in print-pdf mode.                 |
 | `slide-menu-a11y`        | boolean          | `true`                         | Patch the bundled reveal.js-menu plugin for screen reader accessibility.                                                                            |
 | `slide-change-cue`       | boolean / object | `{visual: true, audio: false}` | Slide change feedback. `true` enables both visual and audio; `false` disables both; or use `{visual: true, audio: false}` for fine-grained control. |
 | `font-size-step`         | number           | `10`                           | Percentage increment for font size adjustments.                                                                                                     |
@@ -98,6 +99,7 @@ On Chromium-based browsers (Chrome, Edge), a local font picker is available as a
 | `+`      | Increase font size.    |
 | `-`      | Decrease font size.    |
 | `0`      | Reset font size.       |
+| `T`      | Toggle transcript view. |
 | `A`      | Toggle settings menu.  |
 
 ### Persistence

@@ -405,9 +405,138 @@
   border: 0;
 }
 
+/* =========================================================================
+   Transcript - Hide blocks in normal slide view
+   ========================================================================= */
+
+.reveal .slides .transcript {
+  display: none;
+}
+
+/* Show transcript blocks below each slide in print-pdf mode. */
+.print-pdf .reveal .slides .transcript {
+  display: block;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-top: 2px solid #e0e0e0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+/* =========================================================================
+   Transcript - Overlay
+   ========================================================================= */
+
+.revealjs-a11y-transcript {
+  position: fixed;
+  inset: 0;
+  z-index: 201;
+  background: #fff;
+  color: #222;
+  overflow-y: auto;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 2rem;
+}
+
+.revealjs-a11y-transcript-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 1rem;
+}
+
+.revealjs-a11y-transcript-close {
+  background: none;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.revealjs-a11y-transcript-close:hover,
+.revealjs-a11y-transcript-close:focus-visible {
+  border-color: #666;
+  color: #000;
+  outline: 3px solid var(--a11y-accent, #4a90d9);
+  outline-offset: 2px;
+}
+
+.revealjs-a11y-transcript article {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.revealjs-a11y-transcript h1 {
+  font-size: 1.75rem;
+  margin: 0;
+}
+
+.revealjs-a11y-transcript h2 {
+  font-size: 1.25rem;
+  color: #444;
+  margin: 0 0 0.5rem;
+}
+
+.revealjs-a11y-transcript h3 {
+  font-size: 1.1rem;
+  color: #555;
+  margin: 0 0 0.5rem;
+}
+
+.revealjs-a11y-transcript p {
+  margin: 0.5rem 0;
+}
+
+.revealjs-a11y-transcript .no-content {
+  color: #999;
+  font-style: italic;
+}
+
+.revealjs-a11y-high-contrast .revealjs-a11y-transcript {
+  background: #fff;
+  color: #000;
+}
+
+/* =========================================================================
+   Menu Action Button
+   ========================================================================= */
+
+.revealjs-a11y-menu-action {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 2px dashed var(--a11y-accent, #4a90d9);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--a11y-accent, #4a90d9);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: center;
+}
+
+.revealjs-a11y-menu-action:hover,
+.revealjs-a11y-menu-action:focus-visible {
+  background: rgba(74, 144, 217, 0.08);
+}
+
+.revealjs-a11y-high-contrast .revealjs-a11y-menu-action {
+  border-color: #000;
+  color: #000;
+}
+
 @media print {
   .revealjs-a11y-menu,
-  .revealjs-a11y-menu-backdrop {
+  .revealjs-a11y-menu-backdrop,
+  .revealjs-a11y-transcript {
     display: none !important;
   }
 }

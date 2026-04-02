@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### New Features
+
+- feat: add transcript view that linearises slide content into a screen-reader-friendly document (`transcript` option). Authors can provide custom transcript text via `::: {.transcript}` blocks; otherwise the slide's visible content is used. Optionally show transcript below each slide in print-pdf mode with `transcript: {print: true}`.
+
 ## 0.1.1 (2026-04-01)
 
 ### Fixes
