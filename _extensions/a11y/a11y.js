@@ -976,9 +976,13 @@ window.RevealjsA11y =
 
     function setupPrintFragments() {
       var globalSeparate = deck.getConfig().pdfSeparateFragments;
-      var slides = revealElement.querySelectorAll(
-        ".slides > section, .slides > section > section",
-      );
+      var slides = Array.from(
+        revealElement.querySelectorAll(
+          ".slides > section, .slides > section > section",
+        ),
+      ).filter(function (s) {
+        return !s.querySelector(":scope > section");
+      });
       slides.forEach(function (slide) {
         var forceSeparate = slide.hasAttribute("data-pdf-separate");
         var forceNoSeparate = slide.hasAttribute("data-pdf-no-separate");
@@ -1013,6 +1017,15 @@ window.RevealjsA11y =
           });
 
         var parent = slide.parentNode;
+
+        // Base state: all fragments hidden
+        var baseClone = slide.cloneNode(true);
+        baseClone.querySelectorAll(".fragment").forEach(function (f) {
+          f.style.opacity = "0";
+          f.style.visibility = "hidden";
+        });
+        parent.insertBefore(baseClone, slide);
+
         indices.forEach(function (idx) {
           var clone = slide.cloneNode(true);
           clone.querySelectorAll(".fragment").forEach(function (f) {
@@ -2332,13 +2345,12 @@ window.RevealjsA11y =
         setupLinkHighlight();
         if (config.slideLandmarks) setupSlideLandmarks();
         if (config.altTextWarnings) setupAltTextWarnings();
-        if (config.announceSlideNumbers) setupSlideAnnouncements();
-        if (config.announceFragments) setupFragmentAnnouncements();
-        if (
-          !isPrintPdf &&
-          (config.slideChangeCue.visual || config.slideChangeCue.audio)
-        ) {
-          setupSlideChangeCue(config.slideChangeCue);
+        if (!isPrintPdf) {
+          if (config.announceSlideNumbers) setupSlideAnnouncements();
+          if (config.announceFragments) setupFragmentAnnouncements();
+          if (config.slideChangeCue.visual || config.slideChangeCue.audio) {
+            setupSlideChangeCue(config.slideChangeCue);
+          }
         }
         if (config.transcript.enabled) setupTranscript();
         if (

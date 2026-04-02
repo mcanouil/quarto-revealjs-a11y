@@ -485,7 +485,7 @@ See also [How to Use This Deck](#how-to-use-this-deck) for plugin-specific short
 
 :::
 
-## Overlaying Fragments (PDF Separate) {pdf-separate}
+## Overlaying Fragments (PDF Separate) {data-pdf-separate="true"}
 
 ::: {.fragment .fade-in-then-out}
 **First view** -- this content replaces the next.

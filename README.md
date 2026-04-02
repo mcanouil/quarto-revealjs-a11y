@@ -115,8 +115,8 @@ When using `?print-pdf`, the plugin resets user preferences (font size, spacing,
 Interactive elements (menu, pointer, skip link) are hidden.
 Slide backgrounds, code blocks, tables, and callouts retain their styling.
 
-Add `{pdf-separate}` to a slide heading to generate separate pages per fragment state (useful for overlaying fragments like `fade-in-then-out`).
-Add `{pdf-no-separate}` to override the global `pdf-separate-fragments` setting for a specific slide.
+Add `{data-pdf-separate="true"}` to a slide heading to generate separate pages per fragment state (useful for overlaying fragments like `fade-in-then-out`).
+Add `{data-pdf-no-separate="true"}` to override the global `pdf-separate-fragments` setting for a specific slide.
 
 ## Example
 
