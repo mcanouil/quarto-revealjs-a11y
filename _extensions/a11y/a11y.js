@@ -171,9 +171,11 @@ window.RevealjsA11y =
       if (value && typeof value === "object") {
         return {
           enabled: value.enabled !== undefined ? value.enabled : true,
-          size: value.size || 80,
-          colour: value.colour || value.color || "rgba(74, 144, 217, 0.4)",
-          shortcut: value.shortcut || "p",
+          size: value.size != null ? value.size : 80,
+          colour:
+            value.colour || value.color || "rgba(74, 144, 217, 0.4)",
+          shortcut:
+            value.shortcut != null ? value.shortcut : "p",
         };
       }
       return fallback;
@@ -976,14 +978,18 @@ window.RevealjsA11y =
       pointerActive = true;
       pointerElement.hidden = false;
 
+      var lastX = 0;
+      var lastY = 0;
       pointerMoveHandler = (e) => {
+        lastX = e.clientX;
+        lastY = e.clientY;
         if (!pointerRafId) {
           pointerRafId = requestAnimationFrame(() => {
             pointerElement.style.transform =
               "translate(" +
-              e.clientX +
+              lastX +
               "px, " +
-              e.clientY +
+              lastY +
               "px) translate(-50%, -50%)";
             pointerRafId = null;
           });
@@ -993,6 +999,7 @@ window.RevealjsA11y =
 
       pointerFocusHandler = (e) => {
         const rect = e.target.getBoundingClientRect();
+        if (rect.width === 0 && rect.height === 0) return;
         const cx = rect.left + rect.width / 2;
         const cy = rect.top + rect.height / 2;
         pointerElement.style.transform =
@@ -1984,6 +1991,14 @@ window.RevealjsA11y =
             const storedColour =
               storageGet("pointer-colour") ||
               config.pointerIndicator.colour;
+            if (
+              !colourOptions.some((o) => o.value === storedColour)
+            ) {
+              colourOptions.push({
+                name: "Custom",
+                value: storedColour,
+              });
+            }
             const colourIdx = colourOptions.findIndex(
               (o) => o.value === storedColour,
             );
