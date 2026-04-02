@@ -2069,27 +2069,31 @@ window.RevealjsA11y =
             const storedColour =
               storageGet("pointer-colour") ||
               config.pointerIndicator.colour;
-            if (
-              !colourOptions.some((o) => o.value === storedColour)
-            ) {
-              colourOptions.push({
-                name: "Custom",
-                value: storedColour,
-              });
-            }
-            const colourIdx = colourOptions.findIndex(
-              (o) => o.value === storedColour,
-            );
-            const colourRow = createSelect(
-              "pc",
+            const colourRow = createElement("div", {
+              class: `${CSS_PREFIX}-menu-row`,
+            });
+            const colourLabel = createElement(
+              "label",
+              {
+                for: `${CSS_PREFIX}-input-pc`,
+                class: `${CSS_PREFIX}-menu-label`,
+              },
               "Pointer colour",
-              "pointer-colour",
-              colourOptions,
-              Math.max(colourIdx, 0),
             );
-            const colourSelect = colourRow.querySelector(
-              '[data-setting="pointer-colour"]',
-            );
+            const colourSelect = createElement("select", {
+              id: `${CSS_PREFIX}-input-pc`,
+              "data-setting": "pointer-colour",
+              class: `${CSS_PREFIX}-menu-select`,
+            });
+            colourOptions.forEach((opt) => {
+              const option = createElement(
+                "option",
+                { value: opt.value },
+                opt.name,
+              );
+              if (opt.value === storedColour) option.selected = true;
+              colourSelect.appendChild(option);
+            });
             colourSelect.addEventListener("change", () => {
               const val = colourSelect.value;
               if (pointerElement) {
@@ -2103,6 +2107,8 @@ window.RevealjsA11y =
                 colourOptions.find((o) => o.value === val)?.name || val;
               announceStatus("Pointer colour: " + name);
             });
+            colourRow.appendChild(colourLabel);
+            colourRow.appendChild(colourSelect);
             fieldset.appendChild(colourRow);
           }
 
