@@ -533,10 +533,45 @@
   color: #000;
 }
 
+/* =========================================================================
+   Pointer / Focus Indicator
+   ========================================================================= */
+
+.revealjs-a11y-pointer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--a11y-pointer-size, 80px);
+  height: var(--a11y-pointer-size, 80px);
+  border-radius: 50%;
+  background: var(--a11y-pointer-colour, rgba(74, 144, 217, 0.4));
+  border: 3px solid var(--a11y-accent, #4a90d9);
+  pointer-events: none;
+  z-index: 9999;
+  will-change: transform;
+}
+
+.revealjs-a11y-pointer[hidden] {
+  display: none;
+}
+
+.revealjs-a11y-high-contrast .revealjs-a11y-pointer {
+  background: rgba(255, 255, 0, 0.5);
+  border-color: #000;
+  border-width: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .revealjs-a11y-pointer {
+    transition: none;
+  }
+}
+
 @media print {
   .revealjs-a11y-menu,
   .revealjs-a11y-menu-backdrop,
-  .revealjs-a11y-transcript {
+  .revealjs-a11y-transcript,
+  .revealjs-a11y-pointer {
     display: none !important;
   }
 }

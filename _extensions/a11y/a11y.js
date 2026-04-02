@@ -29,6 +29,7 @@ window.RevealjsA11y =
       announceFragments: true,
       slideChangeCue: { visual: true, audio: false },
       transcript: { enabled: true, print: false },
+      pointerIndicator: false,
       slideMenuA11y: true,
       fontSizeStep: 10,
       fontSizeMin: 50,
@@ -83,6 +84,11 @@ window.RevealjsA11y =
     let transcriptPreviousFocus = null;
     let transcriptPreviousKeyboard = null;
     let transcriptKeyHandler = null;
+    let pointerActive = false;
+    let pointerElement = null;
+    let pointerRafId = null;
+    let pointerMoveHandler = null;
+    let pointerFocusHandler = null;
     const deckHandlers = [];
 
     function deckOn(event, handler) {
@@ -151,6 +157,28 @@ window.RevealjsA11y =
       return fallback;
     }
 
+    function normalisePointer(value, fallback) {
+      if (typeof value === "boolean") {
+        return value
+          ? {
+              enabled: true,
+              size: 80,
+              colour: "rgba(74, 144, 217, 0.4)",
+              shortcut: "p",
+            }
+          : false;
+      }
+      if (value && typeof value === "object") {
+        return {
+          enabled: value.enabled !== undefined ? value.enabled : true,
+          size: value.size || 80,
+          colour: value.colour || value.color || "rgba(74, 144, 217, 0.4)",
+          shortcut: value.shortcut || "p",
+        };
+      }
+      return fallback;
+    }
+
     function resolveConfig(revealConfig) {
       const userConfig = revealConfig["revealjs-a11y"] || {};
       const merged = Object.assign({}, DEFAULT_CONFIG, normaliseKeys(userConfig));
@@ -161,6 +189,10 @@ window.RevealjsA11y =
       merged.transcript = normaliseTranscript(
         merged.transcript,
         DEFAULT_CONFIG.transcript,
+      );
+      merged.pointerIndicator = normalisePointer(
+        merged.pointerIndicator,
+        false,
       );
       merged.menu = normaliseMenu(merged.menu, DEFAULT_CONFIG.menu);
       merged.fontSizeStep = Math.max(1, merged.fontSizeStep || DEFAULT_CONFIG.fontSizeStep);
@@ -937,6 +969,120 @@ window.RevealjsA11y =
     }
 
     // =========================================================================
+    // Pointer / Focus Indicator
+    // =========================================================================
+
+    function activatePointer() {
+      pointerActive = true;
+      pointerElement.hidden = false;
+
+      pointerMoveHandler = (e) => {
+        if (!pointerRafId) {
+          pointerRafId = requestAnimationFrame(() => {
+            pointerElement.style.transform =
+              "translate(" +
+              e.clientX +
+              "px, " +
+              e.clientY +
+              "px) translate(-50%, -50%)";
+            pointerRafId = null;
+          });
+        }
+      };
+      document.addEventListener("mousemove", pointerMoveHandler);
+
+      pointerFocusHandler = (e) => {
+        const rect = e.target.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        pointerElement.style.transform =
+          "translate(" + cx + "px, " + cy + "px) translate(-50%, -50%)";
+      };
+      document.addEventListener("focusin", pointerFocusHandler);
+
+      storageSet("pointer-indicator", "true");
+      announceStatus("Pointer indicator enabled");
+      syncMenuState();
+    }
+
+    function deactivatePointer() {
+      pointerActive = false;
+      pointerElement.hidden = true;
+
+      if (pointerMoveHandler) {
+        document.removeEventListener("mousemove", pointerMoveHandler);
+        pointerMoveHandler = null;
+      }
+      if (pointerFocusHandler) {
+        document.removeEventListener("focusin", pointerFocusHandler);
+        pointerFocusHandler = null;
+      }
+      if (pointerRafId) {
+        cancelAnimationFrame(pointerRafId);
+        pointerRafId = null;
+      }
+
+      storageSet("pointer-indicator", "false");
+      announceStatus("Pointer indicator disabled");
+      syncMenuState();
+    }
+
+    function togglePointer() {
+      if (pointerActive) {
+        deactivatePointer();
+      } else {
+        activatePointer();
+      }
+    }
+
+    function setupPointerIndicator(pointerConfig) {
+      pointerElement = createElement("div", {
+        class: CSS_PREFIX + "-pointer",
+        "aria-hidden": "true",
+      });
+      pointerElement.hidden = true;
+      pointerElement.style.setProperty(
+        "--a11y-pointer-size",
+        pointerConfig.size + "px",
+      );
+      pointerElement.style.setProperty(
+        "--a11y-pointer-colour",
+        pointerConfig.colour,
+      );
+      document.body.appendChild(pointerElement);
+
+      const storedSize = storageGet("pointer-size");
+      if (storedSize) {
+        pointerElement.style.setProperty(
+          "--a11y-pointer-size",
+          storedSize + "px",
+        );
+      }
+
+      const storedColour = storageGet("pointer-colour");
+      if (storedColour) {
+        pointerElement.style.setProperty(
+          "--a11y-pointer-colour",
+          storedColour,
+        );
+      }
+
+      const shortcutKey = pointerConfig.shortcut.toUpperCase();
+      deck.addKeyBinding(
+        {
+          keyCode: shortcutKey.charCodeAt(0),
+          key: shortcutKey,
+          description: "Toggle pointer indicator",
+        },
+        togglePointer,
+      );
+
+      if (storageGet("pointer-indicator") === "true") {
+        activatePointer();
+      }
+    }
+
+    // =========================================================================
     // Local Font Picker (progressive enhancement, Chromium only)
     // =========================================================================
 
@@ -1154,6 +1300,30 @@ window.RevealjsA11y =
           storageGet("transcript-print") === "true" ||
           config.transcript.print;
         tpSwitch.setAttribute("aria-checked", String(active));
+      }
+
+      const piSwitch = menu.querySelector(
+        '[data-setting="pointer-indicator"]',
+      );
+      if (piSwitch) {
+        piSwitch.setAttribute("aria-checked", String(pointerActive));
+      }
+
+      const psRange = menu.querySelector('[data-setting="pointer-size"]');
+      if (psRange && config.pointerIndicator) {
+        const size =
+          storageGet("pointer-size") || config.pointerIndicator.size;
+        psRange.value = String(size);
+        psRange.setAttribute("aria-valuenow", String(size));
+        psRange.setAttribute("aria-valuetext", size + "px");
+      }
+
+      const pcSelect = menu.querySelector(
+        '[data-setting="pointer-colour"]',
+      );
+      if (pcSelect && config.pointerIndicator) {
+        pcSelect.value =
+          storageGet("pointer-colour") || config.pointerIndicator.colour;
       }
     }
 
@@ -1709,7 +1879,9 @@ window.RevealjsA11y =
 
       // --- Tools group ---
       {
-        const hasTools = config.transcript.enabled;
+        const hasTools =
+          config.transcript.enabled ||
+          (config.pointerIndicator && config.pointerIndicator.enabled);
         if (hasTools) {
           const fieldset = createElement("fieldset", {
             class: `${CSS_PREFIX}-menu-group`,
@@ -1759,6 +1931,86 @@ window.RevealjsA11y =
               );
             });
             fieldset.appendChild(printRow);
+          }
+
+          if (config.pointerIndicator && config.pointerIndicator.enabled) {
+            const piRow = createSwitch(
+              "pi",
+              "Pointer indicator",
+              "pointer-indicator",
+              pointerActive,
+            );
+            const piBtn = piRow.querySelector(
+              '[data-setting="pointer-indicator"]',
+            );
+            piBtn.addEventListener("click", () => togglePointer());
+            fieldset.appendChild(piRow);
+
+            const storedSize =
+              storageGet("pointer-size") || config.pointerIndicator.size;
+            const sizeRow = createRange(
+              "ps",
+              "Pointer size",
+              "pointer-size",
+              20,
+              200,
+              10,
+              parseInt(storedSize, 10),
+              (v) => v + "px",
+            );
+            const sizeInput = sizeRow.querySelector(
+              '[data-setting="pointer-size"]',
+            );
+            sizeInput.addEventListener("input", () => {
+              const val = parseInt(sizeInput.value, 10);
+              if (pointerElement) {
+                pointerElement.style.setProperty(
+                  "--a11y-pointer-size",
+                  val + "px",
+                );
+              }
+              storageSet("pointer-size", String(val));
+              announceStatus("Pointer size: " + val + "px");
+              syncMenuState();
+            });
+            fieldset.appendChild(sizeRow);
+
+            const colourOptions = [
+              { name: "Blue", value: "rgba(74, 144, 217, 0.4)" },
+              { name: "Yellow", value: "rgba(255, 255, 0, 0.4)" },
+              { name: "Red", value: "rgba(255, 0, 0, 0.3)" },
+              { name: "Green", value: "rgba(0, 200, 100, 0.3)" },
+            ];
+            const storedColour =
+              storageGet("pointer-colour") ||
+              config.pointerIndicator.colour;
+            const colourIdx = colourOptions.findIndex(
+              (o) => o.value === storedColour,
+            );
+            const colourRow = createSelect(
+              "pc",
+              "Pointer colour",
+              "pointer-colour",
+              colourOptions,
+              Math.max(colourIdx, 0),
+            );
+            const colourSelect = colourRow.querySelector(
+              '[data-setting="pointer-colour"]',
+            );
+            colourSelect.addEventListener("change", () => {
+              const val = colourSelect.value;
+              if (pointerElement) {
+                pointerElement.style.setProperty(
+                  "--a11y-pointer-colour",
+                  val,
+                );
+              }
+              storageSet("pointer-colour", val);
+              const name =
+                colourOptions.find((o) => o.value === val)?.name || val;
+              announceStatus("Pointer colour: " + name);
+            });
+            fieldset.appendChild(colourRow);
           }
 
           body.appendChild(fieldset);
@@ -1933,6 +2185,9 @@ window.RevealjsA11y =
         "visual-cue",
         "audio-cue",
         "transcript-print",
+        "pointer-indicator",
+        "pointer-size",
+        "pointer-colour",
       ];
       keys.forEach((key) => {
         try {
@@ -1952,6 +2207,18 @@ window.RevealjsA11y =
       }
       if (config.linkHighlight) {
         revealElement.classList.add(`${CSS_PREFIX}-link-highlight`);
+      }
+
+      if (pointerActive) deactivatePointer();
+      if (pointerElement && config.pointerIndicator) {
+        pointerElement.style.setProperty(
+          "--a11y-pointer-size",
+          config.pointerIndicator.size + "px",
+        );
+        pointerElement.style.setProperty(
+          "--a11y-pointer-colour",
+          config.pointerIndicator.colour,
+        );
       }
 
       announceStatus("All accessibility preferences reset");
@@ -1986,6 +2253,9 @@ window.RevealjsA11y =
           setupSlideChangeCue(config.slideChangeCue);
         }
         if (config.transcript.enabled) setupTranscript();
+        if (config.pointerIndicator && config.pointerIndicator.enabled) {
+          setupPointerIndicator(config.pointerIndicator);
+        }
 
         // Restore local font if one was previously selected.
         const storedLocalFont = storageGet("local-font");
@@ -2066,6 +2336,20 @@ window.RevealjsA11y =
         transcriptOpen = false;
         transcriptPreviousFocus = null;
         transcriptPreviousKeyboard = null;
+
+        if (pointerActive) {
+          document.removeEventListener("mousemove", pointerMoveHandler);
+          document.removeEventListener("focusin", pointerFocusHandler);
+          if (pointerRafId) cancelAnimationFrame(pointerRafId);
+        }
+        if (pointerElement) {
+          pointerElement.remove();
+          pointerElement = null;
+        }
+        pointerActive = false;
+        pointerMoveHandler = null;
+        pointerFocusHandler = null;
+        pointerRafId = null;
 
         document
           .querySelectorAll("link[data-revealjs-a11y-font]")

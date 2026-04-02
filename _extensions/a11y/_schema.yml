@@ -66,6 +66,10 @@ options:
     type: [boolean, object]
     default: true
     description: "Enable a transcript view. Use `true` for interactive overlay only, `false` to disable, or an object with `print` (boolean, default false) to also show transcript below each slide in print-pdf mode."
+  pointer-indicator:
+    type: [boolean, object]
+    default: false
+    description: "Show a large, high-visibility focus ring or spotlight that follows cursor or keyboard focus. Use `true` for defaults, `false` to disable, or an object with `size` (number in px, default 80), `colour` (CSS colour, default 'rgba(74, 144, 217, 0.4)'), and `shortcut` (string, default 'p') keys."
   slide-menu-a11y:
     type: boolean
     default: true

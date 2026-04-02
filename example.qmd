@@ -21,6 +21,7 @@ format:
       announce-slide-numbers: true
       announce-fragments: true
       transcript: true
+      pointer-indicator: true
       slide-menu-a11y: true
       slide-change-cue:
         visual: true
@@ -235,6 +236,19 @@ It demonstrates how authors can provide custom transcript text that is more desc
 ::: {.notes}
 The transcript view is useful for screen reader users and anyone who prefers a linear reading experience.
 Press T to open it, Escape to close.
+:::
+
+## Pointer / Focus Indicator
+
+Press {{< kbd "P" mode=plain >}} to toggle a large, high-visibility spotlight that follows the cursor or keyboard focus.
+
+- Useful for low-vision users following along on a projected display.
+- Configurable size and colour via the accessibility settings menu.
+- Uses `pointer-events: none` so clicks pass through the spotlight.
+
+::: {.notes}
+The pointer indicator tracks the mouse cursor via `mousemove` and keyboard focus via `focusin`.
+It uses `requestAnimationFrame` for smooth updates and `will-change: transform` for GPU compositing.
 :::
 
 ## Accessibility Settings Menu
