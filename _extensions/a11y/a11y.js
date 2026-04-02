@@ -3,7 +3,8 @@
  * Enhances Reveal.js presentations with accessibility features including
  * skip navigation, focus management, reduced motion, high contrast,
  * font size controls, font selection, text spacing, slide landmarks,
- * alt text warnings, link highlighting, and menu integration.
+ * alt text warnings, link highlighting, language change announcements,
+ * and menu integration.
  *
  * @license MIT License
  * @copyright 2026 Mickaël Canouil
@@ -27,6 +28,7 @@ window.RevealjsA11y =
       altTextWarnings: false,
       announceSlideNumbers: true,
       announceFragments: true,
+      announceLanguageChanges: true,
       slideChangeCue: { visual: true, audio: false },
       slideMenuA11y: true,
       fontSizeStep: 10,
@@ -78,6 +80,7 @@ window.RevealjsA11y =
     let primeAudioKeydown = null;
     let slideMenuObserver = null;
     let slideMenuClassObserver = null;
+    let currentSlideLang = null;
     const deckHandlers = [];
 
     function deckOn(event, handler) {
@@ -606,6 +609,37 @@ window.RevealjsA11y =
     function setupFragmentAnnouncements() {
       deckOn("fragmentshown", announceFragmentShown);
       deckOn("fragmenthidden", announceFragmentHidden);
+    }
+
+    // =========================================================================
+    // Language Change Announcements
+    // =========================================================================
+
+    function getLanguageName(code) {
+      try {
+        const dn = new Intl.DisplayNames([code], { type: "language" });
+        return dn.of(code) || code;
+      } catch (_e) {
+        return code;
+      }
+    }
+
+    function onSlideChangedLang() {
+      const currentSlide = deck.getCurrentSlide();
+      if (!currentSlide) return;
+
+      const slideLang =
+        currentSlide.getAttribute("lang") || document.documentElement.lang;
+
+      if (currentSlideLang !== null && slideLang !== currentSlideLang) {
+        announceStatus("Language: " + getLanguageName(slideLang));
+      }
+      currentSlideLang = slideLang;
+    }
+
+    function setupLanguageChangeAnnouncements() {
+      deckOn("slidechanged", onSlideChangedLang);
+      onSlideChangedLang();
     }
 
     function announceStatus(message) {
@@ -1681,6 +1715,7 @@ window.RevealjsA11y =
         if (config.altTextWarnings) setupAltTextWarnings();
         if (config.announceSlideNumbers) setupSlideAnnouncements();
         if (config.announceFragments) setupFragmentAnnouncements();
+        if (config.announceLanguageChanges) setupLanguageChangeAnnouncements();
         if (config.slideChangeCue.visual || config.slideChangeCue.audio) {
           setupSlideChangeCue(config.slideChangeCue);
         }
@@ -1793,6 +1828,7 @@ window.RevealjsA11y =
         reducedMotionMediaQuery = null;
         reducedMotionListener = null;
         reducedMotionPreviousTransitions = null;
+        currentSlideLang = null;
 
         deckHandlers.forEach(({ event, handler }) => {
           deck.off(event, handler);

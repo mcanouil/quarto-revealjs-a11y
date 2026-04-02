@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### New Features
+
+- feat: announce language changes to screen readers when navigating between slides with different `lang` attributes (`announce-language-changes` option, enabled by default).
+
 ## 0.1.1 (2026-04-01)
 
 ### Fixes

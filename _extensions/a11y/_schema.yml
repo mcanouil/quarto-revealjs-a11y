@@ -62,6 +62,10 @@ options:
     type: boolean
     default: true
     description: "Announce fragment content to screen readers when shown or hidden."
+  announce-language-changes:
+    type: boolean
+    default: true
+    description: "Announce language changes to screen readers when navigating between slides with different lang attributes."
   slide-menu-a11y:
     type: boolean
     default: true
