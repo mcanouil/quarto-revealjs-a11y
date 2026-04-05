@@ -1,7 +1,10 @@
 ---
 title: "Reveal.js A11y"
 subtitle: "Accessibility Plugin Demo"
-author: "Mickaël Canouil"
+authors:
+  - name: "Mickaël CANOUIL, _Ph.D._"
+    orcid: "0000-0002-3396-4549"
+    url: "https://mickael.canouil.fr"
 format:
   revealjs:
     output-file: index
@@ -71,7 +74,7 @@ This presentation is designed to exercise as many Quarto Reveal.js features as p
 
 ## Focus Indicators & Link Highlight {.smaller}
 
-:::: {.columns}
+::: {.columns}
 
 ::: {.column width="60%"}
 
@@ -96,7 +99,7 @@ This meets WCAG 1.4.1 (Use of Colour).
 
 :::
 
-::::
+:::
 
 ## Reduced Motion & Slide Change Cues {.smaller}
 
@@ -329,7 +332,7 @@ a11y.resetPreferences();
 
 ## Why Accessibility Matters {background-color="#2a2a2a"}
 
-:::: {.columns}
+::: {.columns}
 
 ::: {.column width="50%"}
 
@@ -347,7 +350,7 @@ people worldwide live with some form of disability.
 
 :::
 
-::::
+:::
 
 ## WCAG at a Glance
 
