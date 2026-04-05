@@ -1835,7 +1835,7 @@ window.RevealjsA11y =
             "Letter spacing",
             "letter-spacing",
             0,
-            4,
+            8,
             1,
             currentLetterSpacing,
             (v) =>
@@ -1867,7 +1867,7 @@ window.RevealjsA11y =
             "Word spacing",
             "word-spacing",
             0,
-            4,
+            8,
             1,
             currentWordSpacing,
             (v) =>
