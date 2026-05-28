@@ -9,6 +9,19 @@
 - feat: add pointer/focus indicator for low-vision users (`pointer-indicator` option). A configurable spotlight follows the cursor or keyboard focus, with size and colour adjustable from the accessibility menu.
 - feat: improve print-pdf output by resetting user preferences, hiding interactive UI, preserving backgrounds, and supporting per-slide fragment separation via `{data-pdf-separate="true"}` and `{data-pdf-no-separate="true"}` attributes.
 
+### Enhancements
+
+- enhance: queue and coalesce status announcements so rapid slide or fragment changes are no longer lost to the `requestAnimationFrame` race; consecutive duplicates are dropped and queued messages are flushed at a polite cadence.
+- enhance: validate `pointer-indicator.size` (numeric, clamped to `[16, 800]` px) and `pointer-indicator.colour` (parsed as a CSS colour) at configuration time; invalid values fall back to defaults and are reported via `console.warn`.
+- enhance: render the local font picker in chunks via `requestAnimationFrame` so very large font collections no longer block the main thread; search input is debounced.
+- enhance: replace the generic "Could not access local fonts" message with permission-aware help text covering denial, insecure contexts, and unsupported browsers.
+- enhance: cancel the in-flight announcement timer and clear the queue on plugin teardown.
+- enhance: document `announce-language-changes` in `_schema.yml` so IDE autocompletion covers it.
+
+### Fixes
+
+- fix: treat `alt=""` as a valid decorative-image declaration; the "missing alt text" warning is now only shown when the `alt` attribute is absent entirely.
+
 ## 0.1.1 (2026-04-01)
 
 ### Fixes
