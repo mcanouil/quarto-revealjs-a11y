@@ -73,7 +73,7 @@ options:
   pointer-indicator:
     type: [boolean, object]
     default: false
-    description: "Show a large, high-visibility focus ring or spotlight that follows cursor or keyboard focus. Use `true` for defaults, `false` to disable, or an object with `size` (number in px, default 80), `colour` (CSS colour, default 'rgba(74, 144, 217, 0.4)'), and `shortcut` (string, default 'p') keys."
+    description: "Show a large, high-visibility focus ring or spotlight that follows cursor or keyboard focus. Use `true` for defaults, `false` to disable, or an object with `size` (number in px, clamped to [16, 800], default 80), `colour` (CSS colour, default 'rgba(74, 144, 217, 0.4)'), and `shortcut` (string, default 'p') keys. Invalid values fall back to defaults with a console warning."
   slide-menu-a11y:
     type: boolean
     default: true

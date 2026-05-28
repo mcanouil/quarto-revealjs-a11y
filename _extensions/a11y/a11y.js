@@ -755,12 +755,12 @@ window.RevealjsA11y =
     }
 
     function flushAnnouncement() {
-      const statusEl = getStatusElement();
       const next = announcementQueue.shift();
       if (next === undefined) {
         announcementTimer = null;
         return;
       }
+      const statusEl = getStatusElement();
       statusEl.textContent = "";
       requestAnimationFrame(() => {
         statusEl.textContent = next;
