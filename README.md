@@ -63,7 +63,7 @@ format:
 | `announce-fragments`     | boolean          | `true`                         | Announce fragment content to screen readers when shown or hidden.                                                                                   |
 | `announce-language-changes` | boolean       | `true`                         | Announce language changes to screen readers when navigating between slides with different `lang` attributes.                                        |
 | `transcript`             | boolean / object | `true`                         | Transcript view. `true` enables overlay only; `false` disables; or use `{print: true}` to also show below slides in print-pdf mode.                 |
-| `pointer-indicator`      | boolean / object | `false`                        | Spotlight that follows cursor/focus. `true` enables with defaults; or use an object with `size`, `colour`, `shortcut` keys.                         |
+| `pointer-indicator`      | boolean / object | `false`                        | Spotlight that follows cursor/focus. `true` enables with defaults; or use an object with `size` (number, clamped to `[16, 800]` px), `colour` (any valid CSS colour), and `shortcut` (string) keys. Invalid values fall back to defaults with a console warning. |
 | `slide-menu-a11y`        | boolean          | `true`                         | Patch the bundled reveal.js-menu plugin for screen reader accessibility.                                                                            |
 | `slide-change-cue`       | boolean / object | `{visual: true, audio: false}` | Slide change feedback. `true` enables both visual and audio; `false` disables both; or use `{visual: true, audio: false}` for fine-grained control. |
 | `font-size-step`         | number           | `10`                           | Percentage increment for font size adjustments.                                                                                                     |
@@ -92,6 +92,7 @@ The plugin ships with these font families:
 7. **OpenDyslexic** (loaded from cdnfonts, dyslexia-friendly).
 
 On Chromium-based browsers (Chrome, Edge), a local font picker is available as a progressive enhancement via the plugin API, allowing users to select any font installed on their machine.
+The picker handles large font collections by rendering items in chunks so the main thread is not blocked, and it surfaces permission-aware help text when access is denied or the browser does not support the Local Font Access API.
 
 ### Keyboard Shortcuts
 

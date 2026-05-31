@@ -8,7 +8,6 @@
  * @license MIT License
  * @copyright 2026 Mickaël Canouil
  * @author Mickaël Canouil
- * @version 0.0.0
  */
 
 window.RevealjsA11y =
@@ -157,13 +156,78 @@ window.RevealjsA11y =
       return fallback;
     }
 
+    const POINTER_DEFAULT_SIZE = 80;
+    const POINTER_MIN_SIZE = 16;
+    const POINTER_MAX_SIZE = 800;
+    const POINTER_DEFAULT_COLOUR = "rgba(74, 144, 217, 0.4)";
+
+    function logWarning(message) {
+      if (typeof console !== "undefined" && console.warn) {
+        console.warn("[revealjs-a11y] " + message);
+      }
+    }
+
+    function validatePointerSize(value, fallback) {
+      if (value == null) return fallback;
+      const n = Number(value);
+      if (!Number.isFinite(n)) {
+        logWarning(
+          "pointer-indicator.size must be a number; got " +
+            JSON.stringify(value) +
+            ". Falling back to " +
+            fallback +
+            "px.",
+        );
+        return fallback;
+      }
+      if (n < POINTER_MIN_SIZE || n > POINTER_MAX_SIZE) {
+        const clamped = Math.min(POINTER_MAX_SIZE, Math.max(POINTER_MIN_SIZE, n));
+        logWarning(
+          "pointer-indicator.size " +
+            n +
+            " is out of range [" +
+            POINTER_MIN_SIZE +
+            ", " +
+            POINTER_MAX_SIZE +
+            "]. Clamped to " +
+            clamped +
+            "px.",
+        );
+        return clamped;
+      }
+      return n;
+    }
+
+    function isValidCssColour(value) {
+      if (typeof value !== "string" || value.length === 0) return false;
+      // Use the browser parser: assign to a probe element's style and check
+      // whether the value was accepted.
+      const probe = document.createElement("div");
+      probe.style.color = "";
+      probe.style.color = value;
+      return probe.style.color !== "";
+    }
+
+    function validatePointerColour(value, fallback) {
+      if (value == null) return fallback;
+      if (!isValidCssColour(value)) {
+        logWarning(
+          "pointer-indicator.colour " +
+            JSON.stringify(value) +
+            " is not a valid CSS colour. Falling back to default.",
+        );
+        return fallback;
+      }
+      return value;
+    }
+
     function normalisePointer(value, fallback) {
       if (typeof value === "boolean") {
         return value
           ? {
               enabled: true,
-              size: 80,
-              colour: "rgba(74, 144, 217, 0.4)",
+              size: POINTER_DEFAULT_SIZE,
+              colour: POINTER_DEFAULT_COLOUR,
               shortcut: "p",
             }
           : false;
@@ -171,11 +235,15 @@ window.RevealjsA11y =
       if (value && typeof value === "object") {
         return {
           enabled: value.enabled !== undefined ? value.enabled : true,
-          size: value.size != null ? value.size : 80,
-          colour:
-            value.colour || value.color || "rgba(74, 144, 217, 0.4)",
+          size: validatePointerSize(value.size, POINTER_DEFAULT_SIZE),
+          colour: validatePointerColour(
+            value.colour != null ? value.colour : value.color,
+            POINTER_DEFAULT_COLOUR,
+          ),
           shortcut:
-            value.shortcut != null ? value.shortcut : "p",
+            typeof value.shortcut === "string" && value.shortcut.length > 0
+              ? value.shortcut
+              : "p",
         };
       }
       return fallback;
@@ -580,16 +648,19 @@ window.RevealjsA11y =
 
       const images = currentSlide.querySelectorAll("img");
       images.forEach((img) => {
-        const alt = img.getAttribute("alt");
-        const hasAlt = alt && alt.trim().length > 0;
-        img.classList.toggle(`${CSS_PREFIX}-missing-alt`, !hasAlt);
+        // Distinguish three states:
+        //   - alt attribute absent: warn (likely an authoring oversight).
+        //   - alt="" (or whitespace-only): valid decorative image; no warning.
+        //   - alt with text: valid; no warning.
+        const altMissing = !img.hasAttribute("alt");
+        img.classList.toggle(`${CSS_PREFIX}-missing-alt`, altMissing);
 
         const nextSibling = img.nextElementSibling;
         const hasLabel =
           nextSibling &&
           nextSibling.classList.contains(`${CSS_PREFIX}-missing-alt-label`);
 
-        if (!hasAlt && !hasLabel) {
+        if (altMissing && !hasLabel) {
           const label = createElement(
             "span",
             {
@@ -599,7 +670,7 @@ window.RevealjsA11y =
             "Missing alt text",
           );
           img.insertAdjacentElement("afterend", label);
-        } else if (hasAlt && hasLabel) {
+        } else if (!altMissing && hasLabel) {
           nextSibling.remove();
         }
       });
@@ -665,7 +736,11 @@ window.RevealjsA11y =
       deckOn("fragmenthidden", announceFragmentHidden);
     }
 
-    function announceStatus(message) {
+    const announcementQueue = [];
+    let announcementTimer = null;
+    const ANNOUNCEMENT_INTERVAL_MS = 150;
+
+    function getStatusElement() {
       let statusEl = revealElement.querySelector(`.${CSS_PREFIX}-status`);
       if (!statusEl) {
         statusEl = createElement("div", {
@@ -676,10 +751,41 @@ window.RevealjsA11y =
         });
         revealElement.appendChild(statusEl);
       }
+      return statusEl;
+    }
+
+    function flushAnnouncement() {
+      const next = announcementQueue.shift();
+      if (next === undefined) {
+        announcementTimer = null;
+        return;
+      }
+      const statusEl = getStatusElement();
       statusEl.textContent = "";
       requestAnimationFrame(() => {
-        statusEl.textContent = message;
+        statusEl.textContent = next;
       });
+      announcementTimer = window.setTimeout(
+        flushAnnouncement,
+        ANNOUNCEMENT_INTERVAL_MS,
+      );
+    }
+
+    function announceStatus(message) {
+      if (typeof message !== "string" || message.length === 0) return;
+      // Coalesce: drop a duplicate of the most recent pending message.
+      const lastQueued = announcementQueue[announcementQueue.length - 1];
+      if (lastQueued === message) return;
+      announcementQueue.push(message);
+      if (announcementTimer === null) flushAnnouncement();
+    }
+
+    function resetAnnouncementQueue() {
+      announcementQueue.length = 0;
+      if (announcementTimer !== null) {
+        window.clearTimeout(announcementTimer);
+        announcementTimer = null;
+      }
     }
 
     // =========================================================================
@@ -1171,97 +1277,150 @@ window.RevealjsA11y =
     // Local Font Picker (progressive enhancement, Chromium only)
     // =========================================================================
 
+    const FONT_LIST_CHUNK_SIZE = 50;
+
+    function buildFontListItem(family, onPick) {
+      const item = createElement("li", {
+        role: "option",
+        tabindex: "0",
+        "data-font": family,
+        style: "font-family: '" + family.replace(/'/g, "\\'") + "'",
+      });
+      item.textContent = family;
+      item.addEventListener("click", () => onPick(family));
+      item.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onPick(family);
+        }
+      });
+      return item;
+    }
+
     async function openLocalFontPicker() {
       if (!("queryLocalFonts" in window)) {
         announceStatus(
-          "Local font picker is not supported in this browser",
+          "Local font picker is not supported in this browser. Use Chrome or Edge to enable this feature.",
         );
         return;
       }
 
+      let fonts;
       try {
-        const fonts = await window.queryLocalFonts();
-        const families = [
-          ...new Set(fonts.map((f) => f.family)),
-        ].sort();
-
-        if (families.length === 0) {
-          announceStatus("No local fonts found");
-          return;
+        fonts = await window.queryLocalFonts();
+      } catch (error) {
+        const name = error && error.name;
+        if (name === "NotAllowedError" || name === "SecurityError") {
+          announceStatus(
+            "Permission to access local fonts was denied. Allow the local fonts permission for this site and try again.",
+          );
+        } else if (name === "InvalidStateError") {
+          announceStatus(
+            "Local fonts are unavailable in this context (for example, inside an insecure frame).",
+          );
+        } else {
+          announceStatus(
+            "Could not access local fonts. Reload the page and try again.",
+          );
         }
-
-        const dialog = createElement("dialog", {
-          class: `${CSS_PREFIX}-font-dialog`,
-          "aria-label": "Select a local font",
-        });
-
-        const heading = createElement("h3", {}, "Select a local font");
-        dialog.appendChild(heading);
-
-        const search = createElement("input", {
-          type: "search",
-          placeholder: "Search fonts\u2026",
-          class: `${CSS_PREFIX}-font-search`,
-          "aria-label": "Search fonts",
-        });
-        dialog.appendChild(search);
-
-        const list = createElement("ul", {
-          class: `${CSS_PREFIX}-font-list`,
-          role: "listbox",
-          "aria-label": "Available fonts",
-        });
-
-        families.forEach((family) => {
-          const item = createElement("li", {
-            role: "option",
-            tabindex: "0",
-            "data-font": family,
-            style: "font-family: '" + family + "'",
-          });
-          item.textContent = family;
-          item.addEventListener("click", () => {
-            applyLocalFont(family);
-            dialog.close();
-          });
-          item.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              applyLocalFont(family);
-              dialog.close();
-            }
-          });
-          list.appendChild(item);
-        });
-
-        dialog.appendChild(list);
-
-        const closeBtn = createElement(
-          "button",
-          { class: `${CSS_PREFIX}-font-dialog-close`, "aria-label": "Close" },
-          "Close",
-        );
-        closeBtn.addEventListener("click", () => {
-          dialog.close();
-        });
-        dialog.appendChild(closeBtn);
-
-        search.addEventListener("input", () => {
-          const query = search.value.toLowerCase();
-          Array.from(list.children).forEach((li) => {
-            const matches = li.getAttribute("data-font").toLowerCase().includes(query);
-            li.style.display = matches ? "" : "none";
-          });
-        });
-
-        dialog.addEventListener("close", () => dialog.remove());
-
-        document.body.appendChild(dialog);
-        dialog.showModal();
-        search.focus();
-      } catch (_e) {
-        announceStatus("Could not access local fonts");
+        return;
       }
+
+      const families = [...new Set(fonts.map((f) => f.family))].sort();
+
+      if (families.length === 0) {
+        announceStatus("No local fonts found");
+        return;
+      }
+
+      const dialog = createElement("dialog", {
+        class: `${CSS_PREFIX}-font-dialog`,
+        "aria-label": "Select a local font",
+      });
+
+      const heading = createElement("h3", {}, "Select a local font");
+      dialog.appendChild(heading);
+
+      const search = createElement("input", {
+        type: "search",
+        placeholder: "Search fonts\u2026",
+        class: `${CSS_PREFIX}-font-search`,
+        "aria-label": "Search fonts",
+      });
+      dialog.appendChild(search);
+
+      const list = createElement("ul", {
+        class: `${CSS_PREFIX}-font-list`,
+        role: "listbox",
+        "aria-label": "Available fonts",
+      });
+
+      const onPick = (family) => {
+        applyLocalFont(family);
+        dialog.close();
+      };
+
+      // Virtualise: render the current filtered slice in chunks via rAF so
+      // very large font collections do not block the main thread.
+      let filtered = families.slice();
+      let renderedCount = 0;
+      let renderToken = 0;
+
+      function renderChunk(token) {
+        if (token !== renderToken) return;
+        const end = Math.min(renderedCount + FONT_LIST_CHUNK_SIZE, filtered.length);
+        const fragment = document.createDocumentFragment();
+        for (let i = renderedCount; i < end; i++) {
+          fragment.appendChild(buildFontListItem(filtered[i], onPick));
+        }
+        list.appendChild(fragment);
+        renderedCount = end;
+        if (renderedCount < filtered.length) {
+          requestAnimationFrame(() => renderChunk(token));
+        }
+      }
+
+      function resetAndRender(nextFiltered) {
+        renderToken += 1;
+        filtered = nextFiltered;
+        renderedCount = 0;
+        list.replaceChildren();
+        renderChunk(renderToken);
+      }
+
+      resetAndRender(filtered);
+
+      dialog.appendChild(list);
+
+      const closeBtn = createElement(
+        "button",
+        { class: `${CSS_PREFIX}-font-dialog-close`, "aria-label": "Close" },
+        "Close",
+      );
+      closeBtn.addEventListener("click", () => dialog.close());
+      dialog.appendChild(closeBtn);
+
+      let searchDebounce = null;
+      search.addEventListener("input", () => {
+        if (searchDebounce !== null) window.clearTimeout(searchDebounce);
+        searchDebounce = window.setTimeout(() => {
+          const query = search.value.trim().toLowerCase();
+          const matching = query
+            ? families.filter((f) => f.toLowerCase().includes(query))
+            : families;
+          resetAndRender(matching);
+        }, 120);
+      });
+
+      dialog.addEventListener("close", () => {
+        renderToken += 1;
+        if (searchDebounce !== null) window.clearTimeout(searchDebounce);
+        dialog.remove();
+      });
+
+      document.body.appendChild(dialog);
+      dialog.showModal();
+      search.focus();
     }
 
     function applyLocalFont(family) {
@@ -2404,6 +2563,7 @@ window.RevealjsA11y =
         );
         if (skipLink) skipLink.remove();
 
+        resetAnnouncementQueue();
         const statusEl = revealElement.querySelector(`.${CSS_PREFIX}-status`);
         if (statusEl) statusEl.remove();
 
