@@ -1,4 +1,4 @@
-# _schema.yml for "revealjs-a11y" revealjs-plugin extension
+# Schema for the a11y extension
 # Describes plugin options for IDE tooling and runtime validation.
 #
 # Configure in document front matter under format: revealjs:
@@ -8,7 +8,7 @@
 #         skip-navigation: true
 #         high-contrast: false
 
-$schema: https://m.canouil.dev/quarto-wizard/assets/schema/v1/extension-schema.json
+$schema: https://m.canouil.dev/quarto-wizard/assets/schema/v2/extension-schema.json
 
 options:
   skip-navigation:
