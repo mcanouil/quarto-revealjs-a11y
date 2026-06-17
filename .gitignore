@@ -4,5 +4,7 @@
 _site/
 *.html
 *_files/
+node_modules/
+/tests/_extensions/
 
 **/*.quarto_ipynb

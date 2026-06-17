@@ -576,7 +576,6 @@
   .revealjs-a11y-status,
   .revealjs-a11y-font-dialog,
   .revealjs-a11y-pointer,
-  .revealjs-a11y-captions,
   .revealjs-a11y-transcript {
     display: none !important;
   }

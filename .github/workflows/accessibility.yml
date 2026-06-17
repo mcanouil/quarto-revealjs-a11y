@@ -1,0 +1,41 @@
+name: Accessibility
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  axe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Render the test fixture deck
+        run: quarto render tests
+
+      - name: Install test dependencies
+        working-directory: tests
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+
+      - name: Run axe-core accessibility check
+        working-directory: tests
+        run: node axe-check.mjs _a11y-fixture.html
+
+      - name: Upload rendered deck
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: a11y-fixture-deck
+          path: tests/_a11y-fixture.html

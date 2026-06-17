@@ -19,6 +19,10 @@ options:
     type: boolean
     default: true
     description: "Enable enhanced visible focus indicators."
+  viewport-zoom:
+    type: boolean
+    default: true
+    description: "Override the Reveal.js viewport meta to allow zooming (WCAG 1.4.4)."
   reduced-motion:
     type: boolean
     default: true

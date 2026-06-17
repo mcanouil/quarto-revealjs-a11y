@@ -330,6 +330,37 @@ const a11y = Reveal.getPlugin("RevealjsA11y");
 a11y.resetPreferences();
 ```
 
+## Advanced Configuration {.smaller .scrollable}
+
+Several options accept an object for fine-grained control, and `font-families` replaces the built-in list:
+
+```{.yaml}
+revealjs-a11y:
+  transcript:
+    print: true
+  menu:
+    enabled: true
+    shortcut: "a"
+    position: "left"
+  pointer-indicator:
+    size: 120
+    colour: "rgba(217, 74, 74, 0.4)"
+    shortcut: "p"
+  slide-change-cue: true
+  font-families:
+    - name: "Default"
+      value: ""
+    - name: "Atkinson Hyperlegible"
+      value: "'Atkinson Hyperlegible', sans-serif"
+      url: "https://fonts.bunny.net/css?family=atkinson-hyperlegible:400,400i,700,700i"
+```
+
+For print-pdf, add `{data-pdf-separate="true"}` to a slide heading to render one page per fragment state:
+
+```{.markdown}
+## Overlaying Fragments {data-pdf-separate="true"}
+```
+
 ## Why Accessibility Matters {background-color="#2a2a2a"}
 
 ::: {.columns}

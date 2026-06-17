@@ -1,0 +1,9 @@
+{
+  "name": "quarto-revealjs-a11y-tests",
+  "private": true,
+  "type": "module",
+  "description": "Automated accessibility gate for the test fixture deck.",
+  "devDependencies": {
+    "playwright": "1.61.0"
+  }
+}
