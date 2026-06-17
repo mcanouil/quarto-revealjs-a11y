@@ -1,7 +1,7 @@
 import { chromium } from "playwright";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
-import { dirname, basename, extname, join, resolve } from "node:path";
+import { dirname, basename, extname, join, resolve, sep } from "node:path";
 
 // Loads a deck rendered with Quarto's built-in `axe: {output: json}`, which
 // injects axe-core (from a CDN), scans every slide, and logs the result as
@@ -34,10 +34,16 @@ const CONTENT_TYPES = {
 const server = createServer(async (req, res) => {
   try {
     const path = decodeURIComponent(new URL(req.url, "http://localhost").pathname);
-    const body = await readFile(join(root, path));
+    const resolved = resolve(join(root, path));
+    if (resolved !== root && !resolved.startsWith(root + sep)) {
+      res.statusCode = 403;
+      res.end("Forbidden");
+      return;
+    }
+    const body = await readFile(resolved);
     res.setHeader(
       "Content-Type",
-      CONTENT_TYPES[extname(path).toLowerCase()] || "application/octet-stream",
+      CONTENT_TYPES[extname(resolved).toLowerCase()] || "application/octet-stream",
     );
     res.end(body);
   } catch (_e) {
@@ -66,14 +72,17 @@ page.on("console", (message) => {
   }
 });
 
-await page.goto(url, { waitUntil: "load" });
-// Quarto sets this attribute once the axe scan has finished.
-await page.waitForSelector("body[data-quarto-axe-complete='true']", {
-  state: "attached",
-  timeout: 60000,
-});
-await browser.close();
-server.close();
+try {
+  await page.goto(url, { waitUntil: "load" });
+  // Quarto sets this attribute once the axe scan has finished.
+  await page.waitForSelector("body[data-quarto-axe-complete='true']", {
+    state: "attached",
+    timeout: 60000,
+  });
+} finally {
+  await browser.close();
+  server.close();
+}
 
 if (!axeResult) {
   console.error("No axe-core JSON result was captured from the page console.");

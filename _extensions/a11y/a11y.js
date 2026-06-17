@@ -777,6 +777,7 @@ window.RevealjsA11y =
     }
 
     function announceLanguageChange(event) {
+      if (!event.currentSlide) return;
       const lang = resolveSlideLang(event.currentSlide);
       if (previousLang === null) {
         previousLang = lang;
@@ -790,7 +791,8 @@ window.RevealjsA11y =
     }
 
     function setupLanguageAnnouncements() {
-      previousLang = null;
+      const currentSlide = deck.getCurrentSlide();
+      previousLang = currentSlide ? resolveSlideLang(currentSlide) : null;
       deckOn("ready", (event) => {
         previousLang = resolveSlideLang(event.currentSlide);
       });
