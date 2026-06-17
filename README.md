@@ -24,7 +24,7 @@ format:
 ```
 
 All features are enabled by default except high contrast mode, alt text warnings, and slide change audio cue.
-Colour overlay is available from the settings menu and defaults to `None`.
+A colour overlay for reading comfort (`None`, `Yellow`, `Blue`, `Pink`, `Green`) is available from the settings menu only and defaults to `None`.
 The accessibility settings menu is enabled by default and can be opened by pressing `A`.
 
 ## Configuration
@@ -50,6 +50,7 @@ format:
 | ------------------------ | ---------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `skip-navigation`        | boolean          | `true`                         | Add a skip navigation link for keyboard users.                                                                                                      |
 | `focus-indicators`       | boolean          | `true`                         | Enable enhanced visible focus indicators.                                                                                                           |
+| `viewport-zoom`          | boolean          | `true`                         | Override the Reveal.js viewport meta that disables zooming (WCAG 1.4.4).                                                                             |
 | `reduced-motion`         | boolean          | `true`                         | Respect `prefers-reduced-motion` by disabling transitions.                                                                                          |
 | `high-contrast`          | boolean          | `false`                        | Enable high contrast mode on load (togglable via the settings menu).                                                                                |
 | `font-size-controls`     | boolean          | `true`                         | Enable keyboard font size controls (`+` / `-` / `0`).                                                                                               |
@@ -93,6 +94,23 @@ The plugin ships with these font families:
 
 On Chromium-based browsers (Chrome, Edge), a local font picker is available as a progressive enhancement via the plugin API, allowing users to select any font installed on their machine.
 The picker handles large font collections by rendering items in chunks so the main thread is not blocked, and it surfaces permission-aware help text when access is denied or the browser does not support the Local Font Access API.
+
+To replace the list with your own fonts, set `font-families`.
+Each entry has a `name` (shown in the menu), a `value` (CSS `font-family` stack), and an optional `url` (a stylesheet to load the font):
+
+```yaml
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      font-families:
+        - name: "Default"
+          value: ""
+        - name: "Atkinson Hyperlegible"
+          value: "'Atkinson Hyperlegible', sans-serif"
+          url: "https://fonts.bunny.net/css?family=atkinson-hyperlegible:400,400i,700,700i"
+```
 
 ### Keyboard Shortcuts
 

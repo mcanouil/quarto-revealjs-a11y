@@ -18,6 +18,11 @@
 - fix: cancel the in-flight announcement timer and clear the queue on plugin teardown.
 - fix: document `announce-language-changes` in `_schema.yml` so IDE autocompletion covers it.
 - fix: treat `alt=""` as a valid decorative-image declaration; the "missing alt text" warning is now only shown when the `alt` attribute is absent entirely.
+- feat: allow zooming by overriding the Reveal.js viewport meta that set `user-scalable=no` (`viewport-zoom` option, enabled by default; WCAG 1.4.4).
+- fix: label the bundled reveal.js-menu toggle button so screen readers announce it (`slide-menu-a11y`).
+- docs: document the colour overlay options and custom `font-families` configuration in the README, and demonstrate the object-form options in the example deck.
+- chore: remove the unused `.revealjs-a11y-captions` CSS rule.
+- test: gate accessibility in CI using Quarto's built-in axe-core check against a dedicated fixture deck, and add a manual screen-reader and keyboard testing checklist (`TESTING.md`).
 
 ## 0.1.1 (2026-04-01)
 
