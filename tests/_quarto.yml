@@ -1,0 +1,8 @@
+project:
+  type: default
+  pre-render:
+    - cp -R ../_extensions _extensions
+  post-render:
+    - rm -rf _extensions
+  render:
+    - _a11y-fixture.qmd

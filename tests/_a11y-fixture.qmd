@@ -1,0 +1,28 @@
+---
+title: "Accessibility fixture"
+format:
+  revealjs:
+    axe:
+      output: json
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      alt-text-warnings: false
+---
+
+## Text and links
+
+A slide with a paragraph and a [labelled link](https://example.com).
+
+- A first item.
+- A second item.
+
+## Language change {lang="fr"}
+
+Un paragraphe en français pour vérifier l'annonce de changement de langue.
+
+## Code
+
+```r
+x <- c(1, 2, 3)
+```
