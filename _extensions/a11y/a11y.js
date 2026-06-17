@@ -16,6 +16,7 @@ window.RevealjsA11y =
     const DEFAULT_CONFIG = {
       skipNavigation: true,
       focusIndicators: true,
+      viewportZoom: true,
       reducedMotion: true,
       highContrast: false,
       fontSizeControls: true,
@@ -26,6 +27,7 @@ window.RevealjsA11y =
       altTextWarnings: false,
       announceSlideNumbers: true,
       announceFragments: true,
+      announceLanguageChanges: true,
       slideChangeCue: { visual: true, audio: false },
       transcript: { enabled: true, print: false },
       pointerIndicator: false,
@@ -88,6 +90,7 @@ window.RevealjsA11y =
     let pointerRafId = null;
     let pointerMoveHandler = null;
     let pointerFocusHandler = null;
+    let previousLang = null;
     const deckHandlers = [];
 
     function deckOn(event, handler) {
@@ -333,6 +336,19 @@ window.RevealjsA11y =
 
     function setupFocusIndicators() {
       revealElement.classList.add(`${CSS_PREFIX}-focus-indicators`);
+    }
+
+    // =========================================================================
+    // Viewport Zoom
+    // =========================================================================
+
+    // Reveal.js ships a viewport meta that disables zooming
+    // (`maximum-scale=1.0, user-scalable=no`), which fails WCAG 1.4.4. Allow
+    // users to pinch- and zoom-in on slide content.
+    function setupViewportZoom() {
+      const meta = document.querySelector('meta[name="viewport"]');
+      if (!meta) return;
+      meta.setAttribute("content", "width=device-width, initial-scale=1.0");
     }
 
     // =========================================================================
@@ -734,6 +750,51 @@ window.RevealjsA11y =
     function setupFragmentAnnouncements() {
       deckOn("fragmentshown", announceFragmentShown);
       deckOn("fragmenthidden", announceFragmentHidden);
+    }
+
+    // =========================================================================
+    // Language Change Announcements
+    // =========================================================================
+
+    function resolveSlideLang(slide) {
+      const baseline = document.documentElement.lang || "";
+      if (!slide) return baseline;
+      const element = slide.matches("[lang]")
+        ? slide
+        : slide.closest("[lang]");
+      return (element && element.getAttribute("lang")) || baseline;
+    }
+
+    function describeLang(lang) {
+      try {
+        const display = new Intl.DisplayNames([navigator.language || "en"], {
+          type: "language",
+        });
+        return display.of(lang) || lang;
+      } catch (_e) {
+        return lang;
+      }
+    }
+
+    function announceLanguageChange(event) {
+      const lang = resolveSlideLang(event.currentSlide);
+      if (previousLang === null) {
+        previousLang = lang;
+        return;
+      }
+      if (lang === previousLang) return;
+      previousLang = lang;
+      if (lang) {
+        announceStatus("Language: " + describeLang(lang));
+      }
+    }
+
+    function setupLanguageAnnouncements() {
+      previousLang = null;
+      deckOn("ready", (event) => {
+        previousLang = resolveSlideLang(event.currentSlide);
+      });
+      deckOn("slidechanged", announceLanguageChange);
     }
 
     const announcementQueue = [];
@@ -2322,6 +2383,11 @@ window.RevealjsA11y =
 
         nav.setAttribute("aria-label", "Slide navigation menu");
 
+        const toggleButton = document.querySelector(".slide-menu-button > a");
+        if (toggleButton && !toggleButton.getAttribute("aria-label")) {
+          toggleButton.setAttribute("aria-label", "Open slide navigation menu");
+        }
+
         const toolbar = nav.querySelector("ol.slide-menu-toolbar");
         if (toolbar) {
           toolbar.setAttribute("role", "tablist");
@@ -2500,6 +2566,7 @@ window.RevealjsA11y =
           if (config.skipNavigation) setupSkipNavigation();
           if (config.focusIndicators) setupFocusIndicators();
           if (config.reducedMotion) setupReducedMotion();
+          if (config.viewportZoom) setupViewportZoom();
         }
         setupHighContrast(isPrintPdf);
         if (!isPrintPdf) {
@@ -2513,6 +2580,7 @@ window.RevealjsA11y =
         if (!isPrintPdf) {
           if (config.announceSlideNumbers) setupSlideAnnouncements();
           if (config.announceFragments) setupFragmentAnnouncements();
+          if (config.announceLanguageChanges) setupLanguageAnnouncements();
           if (config.slideChangeCue.visual || config.slideChangeCue.audio) {
             setupSlideChangeCue(config.slideChangeCue);
           }
@@ -2630,6 +2698,7 @@ window.RevealjsA11y =
         pointerMoveHandler = null;
         pointerFocusHandler = null;
         pointerRafId = null;
+        previousLang = null;
 
         document
           .querySelectorAll("link[data-revealjs-a11y-font]")
