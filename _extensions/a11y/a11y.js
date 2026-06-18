@@ -2028,7 +2028,7 @@ window.RevealjsA11y =
             "Line height",
             "line-height",
             0,
-            4,
+            14,
             1,
             currentLineHeight,
             (v) =>
@@ -2057,7 +2057,7 @@ window.RevealjsA11y =
             "Letter spacing",
             "letter-spacing",
             0,
-            8,
+            20,
             1,
             currentLetterSpacing,
             (v) =>
@@ -2089,7 +2089,7 @@ window.RevealjsA11y =
             "Word spacing",
             "word-spacing",
             0,
-            8,
+            50,
             1,
             currentWordSpacing,
             (v) =>
