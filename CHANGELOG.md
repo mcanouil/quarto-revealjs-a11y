@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: increase `letter-spacing`, `word-spacing`, and `line-height` selectable maximum values.
+
 ## 0.2.0 (2026-06-17)
 
 ### New Features
