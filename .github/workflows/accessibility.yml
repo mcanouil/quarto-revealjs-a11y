@@ -16,7 +16,7 @@ jobs:
 
       - uses: quarto-dev/quarto-actions/setup@v2
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
 
