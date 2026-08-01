@@ -1,7 +1,6 @@
 # Reveal.js A11y
 
-A Quarto extension that enhances Reveal.js presentations with accessibility features.
-It provides skip navigation, enhanced focus indicators, reduced motion support, high contrast mode, font size controls, font selection (including accessible web fonts from Bunny Fonts and a local font picker on Chromium), text spacing controls, colour overlays for reading comfort, link highlighting, ARIA slide landmarks, alt text warnings, screen reader announcements, slide change cues (visual and audio), and an accessibility settings menu.
+A Quarto extension that makes Reveal.js presentations usable: a skip link, real focus indicators, font size and spacing controls, a transcript, a pointer indicator, and screen reader announcements, all reachable from a settings menu and the keyboard.
 
 ## Installation
 
@@ -10,137 +9,15 @@ quarto add mcanouil/quarto-revealjs-a11y@0.2.1
 ```
 
 This will install the extension under the `_extensions` subdirectory.
-If you are using version control, you will want to check in this directory.
 
-## Usage
+If you're using version control, you will want to check in this directory.
 
-Add the plugin to your Reveal.js presentation:
+## Documentation
 
-```yaml
-format:
-  revealjs:
-    revealjs-plugins:
-      - a11y
-```
+The full documentation lives at <https://m.canouil.dev/quarto-revealjs-a11y/>: every option and its default, the keyboard shortcuts, what persists between visits, the print behaviour, and a deck with every control enabled so you can try them.
 
-All features are enabled by default except high contrast mode, alt text warnings, and slide change audio cue.
-A colour overlay for reading comfort (`None`, `Yellow`, `Blue`, `Pink`, `Green`) is available from the settings menu only and defaults to `None`.
-The accessibility settings menu is enabled by default and can be opened by pressing `A`.
+[`example.qmd`](example.qmd) is a short, standalone starting point you can copy.
 
-## Configuration
+## Licence
 
-Configure the plugin in your presentation YAML:
-
-```yaml
-format:
-  revealjs:
-    revealjs-plugins:
-      - a11y
-    revealjs-a11y:
-      high-contrast: false
-      alt-text-warnings: true
-      slide-change-cue:
-        visual: true
-        audio: true
-```
-
-### Options
-
-| Option                   | Type             | Default                        | Description                                                                                                                                         |
-| ------------------------ | ---------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `skip-navigation`        | boolean          | `true`                         | Add a skip navigation link for keyboard users.                                                                                                      |
-| `focus-indicators`       | boolean          | `true`                         | Enable enhanced visible focus indicators.                                                                                                           |
-| `viewport-zoom`          | boolean          | `true`                         | Override the Reveal.js viewport meta that disables zooming (WCAG 1.4.4).                                                                             |
-| `reduced-motion`         | boolean          | `true`                         | Respect `prefers-reduced-motion` by disabling transitions.                                                                                          |
-| `high-contrast`          | boolean          | `false`                        | Enable high contrast mode on load (togglable via the settings menu).                                                                                |
-| `font-size-controls`     | boolean          | `true`                         | Enable keyboard font size controls (`+` / `-` / `0`).                                                                                               |
-| `font-selection`         | boolean          | `true`                         | Enable font family selection via the settings menu.                                                                                                 |
-| `font-families`          | array            | (see below)                    | List of font families to cycle through. Each entry has `name`, `value`, and optional `url` keys.                                                    |
-| `text-spacing`           | boolean          | `true`                         | Enable line height, letter spacing, and word spacing controls via the settings menu.                                                                |
-| `link-highlight`         | boolean          | `true`                         | Underline all links so they are distinguishable without relying on colour alone (WCAG 1.4.1).                                                       |
-| `slide-landmarks`        | boolean          | `true`                         | Add ARIA landmark roles and labels to slides.                                                                                                       |
-| `alt-text-warnings`      | boolean          | `false`                        | Highlight images missing alt text (useful during authoring).                                                                                        |
-| `announce-slide-numbers` | boolean          | `true`                         | Announce slide numbers (with total) and titles to screen readers.                                                                                   |
-| `announce-fragments`     | boolean          | `true`                         | Announce fragment content to screen readers when shown or hidden.                                                                                   |
-| `announce-language-changes` | boolean       | `true`                         | Announce language changes to screen readers when navigating between slides with different `lang` attributes.                                        |
-| `transcript`             | boolean / object | `true`                         | Transcript view. `true` enables overlay only; `false` disables; or use `{print: true}` to also show below slides in print-pdf mode.                 |
-| `pointer-indicator`      | boolean / object | `false`                        | Spotlight that follows cursor/focus. `true` enables with defaults; or use an object with `size` (number, clamped to `[16, 800]` px), `colour` (any valid CSS colour), and `shortcut` (string) keys. Invalid values fall back to defaults with a console warning. |
-| `slide-menu-a11y`        | boolean          | `true`                         | Patch the bundled reveal.js-menu plugin for screen reader accessibility.                                                                            |
-| `slide-change-cue`       | boolean / object | `{visual: true, audio: false}` | Slide change feedback. `true` enables both visual and audio; `false` disables both; or use `{visual: true, audio: false}` for fine-grained control. |
-| `font-size-step`         | number           | `10`                           | Percentage increment for font size adjustments.                                                                                                     |
-| `font-size-min`          | number           | `50`                           | Minimum font size percentage.                                                                                                                       |
-| `font-size-max`          | number           | `200`                          | Maximum font size percentage.                                                                                                                       |
-| `menu`                   | boolean / object | `true`                         | Accessibility settings menu. `true` enables with defaults; `false` disables; or use an object (see below).                                          |
-
-#### Menu Options
-
-| Sub-option | Type    | Default   | Description                                      |
-| ---------- | ------- | --------- | ------------------------------------------------ |
-| `enabled`  | boolean | `true`    | Whether the menu is enabled.                     |
-| `shortcut` | string  | `"a"`     | Key for the shortcut to toggle the menu.         |
-| `position` | string  | `"right"` | Side the panel slides in from (`right`, `left`). |
-
-### Default Font Families
-
-The plugin ships with these font families:
-
-1. **Default** (presentation theme font).
-2. **System Sans** (`system-ui, -apple-system, sans-serif`).
-3. **System Serif** (`Georgia, 'Times New Roman', serif`).
-4. **System Mono** (`ui-monospace, 'Courier New', monospace`).
-5. **Atkinson Hyperlegible** (loaded from [Bunny Fonts](https://fonts.bunny.net), designed for high legibility).
-6. **Lexend** (loaded from [Bunny Fonts](https://fonts.bunny.net), designed to reduce visual stress).
-7. **OpenDyslexic** (loaded from cdnfonts, dyslexia-friendly).
-
-On Chromium-based browsers (Chrome, Edge), a local font picker is available as a progressive enhancement via the plugin API, allowing users to select any font installed on their machine.
-The picker handles large font collections by rendering items in chunks so the main thread is not blocked, and it surfaces permission-aware help text when access is denied or the browser does not support the Local Font Access API.
-
-To replace the list with your own fonts, set `font-families`.
-Each entry has a `name` (shown in the menu), a `value` (CSS `font-family` stack), and an optional `url` (a stylesheet to load the font):
-
-```yaml
-format:
-  revealjs:
-    revealjs-plugins:
-      - a11y
-    revealjs-a11y:
-      font-families:
-        - name: "Default"
-          value: ""
-        - name: "Atkinson Hyperlegible"
-          value: "'Atkinson Hyperlegible', sans-serif"
-          url: "https://fonts.bunny.net/css?family=atkinson-hyperlegible:400,400i,700,700i"
-```
-
-### Keyboard Shortcuts
-
-| Shortcut | Action                 |
-| -------- | ---------------------- |
-| `Tab`    | Navigate to skip link. |
-| `+`      | Increase font size.    |
-| `-`      | Decrease font size.    |
-| `0`      | Reset font size.         |
-| `T`      | Toggle transcript view.  |
-| `P`      | Toggle pointer indicator. |
-| `A`      | Toggle settings menu.    |
-
-### Persistence
-
-User preferences (high contrast, font size, font family, text spacing, link highlight, colour overlay, and slide cue toggles) are saved to `localStorage` and persist across sessions and page reloads.
-
-### Print to PDF
-
-When using `?print-pdf`, the plugin resets user preferences (font size, spacing, colours) so the PDF reflects the author's design.
-Interactive elements (menu, pointer, skip link) are hidden.
-Slide backgrounds, code blocks, tables, and callouts retain their styling.
-
-Add `{data-pdf-separate="true"}` to a slide heading to generate separate pages per fragment state (useful for overlaying fragments like `fade-in-then-out`).
-Add `{data-pdf-no-separate="true"}` to override the global `pdf-separate-fragments` setting for a specific slide.
-
-## Example
-
-Here is the source code for a minimal example: [example.qmd](example.qmd).
-
-Rendered output:
-
-- [Reveal.js](https://m.canouil.dev/quarto-revealjs-a11y/).
+[MIT](https://github.com/mcanouil/quarto-revealjs-a11y?tab=MIT-1-ov-file#readme).
