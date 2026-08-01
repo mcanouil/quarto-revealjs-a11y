@@ -1,6 +1,7 @@
 ---
 title: "A11y in a deck"
 subtitle: "Every control, live"
+description: "A RevealJS deck with the a11y plugin enabled, so every control can be tried from the keyboard."
 format:
   revealjs:
     theme: default
@@ -16,7 +17,6 @@ format:
       link-highlight: true
       transcript: true
       pointer-indicator: true
-      alt-text-warnings: true
       menu:
         enabled: true
         shortcut: a
@@ -35,14 +35,16 @@ Press <kbd>A</kbd> for the settings menu, or use the shortcuts directly.
 | <kbd>P</kbd> | Pointer indicator |
 | <kbd>A</kbd> | Settings menu |
 
+: The shortcuts this deck binds. {.striped .hover tbl-colwidths="[35,65]"}
+
 ## Links are underlined
 
 `link-highlight` underlines every [link](https://quarto.org) so colour is not the only thing distinguishing it.
 
 ## Fragments are announced
 
-- []{.fragment} A fragment.
-- []{.fragment} Another.
+- [A fragment.]{.fragment}
+- [Another.]{.fragment}
 
 With `announce-fragments`, each is announced to a screen reader as it appears.
 

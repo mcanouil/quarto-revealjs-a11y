@@ -23,7 +23,6 @@ format:
       link-highlight: true
       transcript: true
       pointer-indicator: true
-      alt-text-warnings: true
       menu:
         enabled: true
         shortcut: a
@@ -41,17 +40,29 @@ format:
       - a11y
 ```
 
-Enabling the plugin alone gives the skip link, the focus indicators, the zoomable viewport, reduced-motion support, the font and spacing controls, underlined links, slide landmarks, and the announcements.
+Enabling the plugin alone gives the skip link, the focus indicators, the zoomable viewport, reduced-motion support, the font and spacing controls, underlined links, slide landmarks, the announcements, the transcript, the visual slide change cue, and the settings menu on <kbd>A</kbd>.
+
+The pointer indicator, high contrast, the audio cue, and the alt text warnings are the four that start off.
+
+## Checking alt text while you write
+
+```yaml
+revealjs-a11y:
+  alt-text-warnings: true
+```
+
+Every image with no alt text is outlined, which is what you want while writing and not while presenting.
+Take it out again before you show the deck to a room.
 
 ## Turning things off
 
 ```yaml
 revealjs-a11y:
-  alt-text-warnings: false
   announce-fragments: false
+  slide-change-cue: false
 ```
 
-`alt-text-warnings` is the one most often turned off for a finished deck: it highlights images with no alt text, which is what you want while writing and not while presenting.
+Announcements and cues are the ones worth reconsidering on a deck that steps through many fragments at once, where every one of them is spoken.
 
 ## The pointer indicator
 
@@ -63,7 +74,9 @@ revealjs-a11y:
     shortcut: p
 ```
 
+The pointer indicator is off unless you ask for it.
 `size` is clamped to between 16 and 800 pixels, and an invalid value falls back to the default with a console warning rather than failing.
+It is a ring that tracks the cursor and the keyboard focus, so it only means anything in motion: turn it on in [the deck](preview.html) with <kbd>P</kbd> and move the mouse.
 
 ## Slide change cues
 
@@ -75,6 +88,7 @@ revealjs-a11y:
 ```
 
 `true` enables both; the object form separates them, which is usually what a room full of people wants.
+Both cues fire on a slide change, so [the deck](preview.html) is the place to judge them: move a slide and watch, then turn the audio cue on from the settings menu.
 
 ## The transcript in print
 

@@ -28,23 +28,29 @@ Options sit under `revealjs-a11y`, inside the `revealjs` format.
 | `high-contrast` | `false` | Starts in high contrast. Togglable from the menu regardless. |
 | `font-size-controls` | `true` | Font size by keyboard and menu. |
 | `font-selection` | `true` | Font family choice from the menu. |
-| `font-families` | | The families to cycle through, each with `name`, `value`, and an optional `url`. |
+| `font-families` | seven built-in families | The families to cycle through, each with `name`, `value`, and an optional `url`. Replaces the built-in list rather than adding to it. |
 | `text-spacing` | `true` | Line height, letter spacing, and word spacing controls. |
 | `link-highlight` | `true` | Underlines links, so colour is not the only cue. |
 | `slide-landmarks` | `true` | ARIA landmark roles and labels on slides. |
-| `alt-text-warnings` | `true` | Highlights images with no alt text, for authoring. |
+| `alt-text-warnings` | `false` | Highlights images with no alt text, for authoring. |
 | `announce-slide-numbers` | `true` | Announces slide numbers and titles. |
 | `announce-fragments` | `true` | Announces fragments as they appear and disappear. |
 | `announce-language-changes` | `true` | Announces a change of `lang` between slides. |
-| `transcript` | | `true` for the overlay, or an object with `print` to put it below each slide in `print-pdf`. |
-| `pointer-indicator` | | `true` for defaults, or an object with `size`, `colour`, and `shortcut`. |
-| `slide-change-cue` | | `true` for both cues, or an object with `visual` and `audio`. |
+| `transcript` | `true` | `true` for the overlay, `false` to disable, or an object taking `enabled` and `print`. |
+| `pointer-indicator` | `false` | `true` for the defaults, or an object taking `enabled`, `size`, `colour`, and `shortcut`. |
+| `slide-change-cue` | `visual: true`, `audio: false` | `true` for both cues, `false` for neither, or an object taking `visual` and `audio`. |
+| `slide-menu-a11y` | `true` | Patches the bundled RevealJS menu plugin so it is inert when closed, carries ARIA roles, and manages focus. |
 | `menu` | `true` | The settings menu. An object takes `enabled`, `shortcut`, and `position`. |
-| `font-size-step`, `font-size-min`, `font-size-max` | | The font size increment and its bounds, as percentages. |
+| `font-size-step` | `10` | The font size increment, as a percentage. Values below 1 are raised to 1. |
+| `font-size-min` | `50` | The lowest font size, as a percentage. |
+| `font-size-max` | `200` | The highest font size, as a percentage. |
 
-: Options under `revealjs-a11y`. {.striped .hover tbl-colwidths="[28,12,60]"}
+: Options under `revealjs-a11y`. {.striped .hover tbl-colwidths="[24,16,60]"}
 
-Invalid values for `pointer-indicator` fall back to the defaults with a console warning; its `size` is clamped to between 16 and 800 pixels.
+The default font families are Default, System Sans, System Serif, System Mono, Atkinson Hyperlegible, Lexend, and OpenDyslexic.
+The last three are fetched from a webfont host the first time a reader selects them.
+
+Invalid values for `pointer-indicator` fall back to the defaults with a console warning; its `size` is clamped to between 16 and 800 pixels, and its colour key is accepted as either `colour` or `color`.
 
 ## Keyboard shortcuts
 
@@ -60,11 +66,12 @@ Invalid values for `pointer-indicator` fall back to the defaults with a console 
 
 : The default shortcuts. {.striped .hover tbl-colwidths="[20,80]"}
 
+Each key is bound only when its feature is on, so <kbd>P</kbd> does nothing until `pointer-indicator` is enabled.
 The menu and pointer shortcuts are configurable.
 
 ## What persists
 
-High contrast, font size, font family, text spacing, link highlight, the colour overlay, and the slide cue toggles are kept in `localStorage`, so a reader sets them once.
+These are kept in `localStorage`, so a reader sets them once: high contrast, font size, font family, line height, letter spacing, word spacing, link highlight, the colour overlay, the visual and audio cue toggles, whether the pointer indicator is on, its size and colour, and whether the transcript is printed.
 
 ## Printing
 
