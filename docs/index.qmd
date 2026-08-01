@@ -48,6 +48,8 @@ That is enough: most of what it does is on by default.
 The [preview deck](preview.html) is built by this site with every control enabled.
 Press <kbd>A</kbd> for the settings menu, or use <kbd>+</kbd>, <kbd>-</kbd>, <kbd>0</kbd>, <kbd>T</kbd>, and <kbd>P</kbd>.
 
+![](preview.html){.embed-art loading="lazy" title="A deck with every accessibility control enabled" style="--atelier-embed-art-ratio: 1.78;"}
+
 See the [Reference](reference.qmd) for every option, and the [Examples](examples.qmd) for the configuration behind the deck.
 
 ## Where it works
