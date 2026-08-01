@@ -1,0 +1,83 @@
+---
+title: "Reference"
+subtitle: "Every option the a11y plugin accepts."
+description: "The complete a11y configuration: the options and their defaults, the keyboard shortcuts, what persists, and the print behaviour."
+---
+
+## Enabling the plugin
+
+```yaml
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      high-contrast: false
+```
+
+Options sit under `revealjs-a11y`, inside the `revealjs` format.
+
+## Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `skip-navigation` | `true` | A skip link for keyboard users. |
+| `focus-indicators` | `true` | Enhanced visible focus rings. |
+| `viewport-zoom` | `true` | Overrides RevealJS's viewport meta so the deck can be zoomed, as WCAG 1.4.4 requires. |
+| `reduced-motion` | `true` | Disables transitions for readers who ask for reduced motion. |
+| `high-contrast` | `false` | Starts in high contrast. Togglable from the menu regardless. |
+| `font-size-controls` | `true` | Font size by keyboard and menu. |
+| `font-selection` | `true` | Font family choice from the menu. |
+| `font-families` | | The families to cycle through, each with `name`, `value`, and an optional `url`. |
+| `text-spacing` | `true` | Line height, letter spacing, and word spacing controls. |
+| `link-highlight` | `true` | Underlines links, so colour is not the only cue. |
+| `slide-landmarks` | `true` | ARIA landmark roles and labels on slides. |
+| `alt-text-warnings` | `true` | Highlights images with no alt text, for authoring. |
+| `announce-slide-numbers` | `true` | Announces slide numbers and titles. |
+| `announce-fragments` | `true` | Announces fragments as they appear and disappear. |
+| `announce-language-changes` | `true` | Announces a change of `lang` between slides. |
+| `transcript` | | `true` for the overlay, or an object with `print` to put it below each slide in `print-pdf`. |
+| `pointer-indicator` | | `true` for defaults, or an object with `size`, `colour`, and `shortcut`. |
+| `slide-change-cue` | | `true` for both cues, or an object with `visual` and `audio`. |
+| `menu` | `true` | The settings menu. An object takes `enabled`, `shortcut`, and `position`. |
+| `font-size-step`, `font-size-min`, `font-size-max` | | The font size increment and its bounds, as percentages. |
+
+: Options under `revealjs-a11y`. {.striped .hover tbl-colwidths="[28,12,60]"}
+
+Invalid values for `pointer-indicator` fall back to the defaults with a console warning; its `size` is clamped to between 16 and 800 pixels.
+
+## Keyboard shortcuts
+
+| Key | Action |
+| --- | --- |
+| <kbd>Tab</kbd> | Reach the skip link. |
+| <kbd>+</kbd> | Increase the font size. |
+| <kbd>-</kbd> | Decrease it. |
+| <kbd>0</kbd> | Reset it. |
+| <kbd>T</kbd> | Toggle the transcript. |
+| <kbd>P</kbd> | Toggle the pointer indicator. |
+| <kbd>A</kbd> | Toggle the settings menu. |
+
+: The default shortcuts. {.striped .hover tbl-colwidths="[20,80]"}
+
+The menu and pointer shortcuts are configurable.
+
+## What persists
+
+High contrast, font size, font family, text spacing, link highlight, the colour overlay, and the slide cue toggles are kept in `localStorage`, so a reader sets them once.
+
+## Printing
+
+```yaml
+revealjs-a11y:
+  transcript:
+    print: true
+```
+
+puts the transcript below each slide in `print-pdf` output, which is the only part of the plugin that outlives the browser.
+
+## Limitations
+
+- RevealJS only.
+- Everything but the printed transcript needs JavaScript.
+- The plugin patches the bundled menu plugin for screen readers; a deck using a different menu keeps its own behaviour.

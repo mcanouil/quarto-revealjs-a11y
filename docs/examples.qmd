@@ -1,0 +1,106 @@
+---
+title: "Examples"
+subtitle: "The configuration behind the deck."
+description: "The a11y options as set on this site's preview deck, with what each one changes."
+---
+
+The [preview deck](preview.html) is built by this site with every control enabled.
+This page is the configuration behind it.
+
+## What the deck sets
+
+```yaml
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      skip-navigation: true
+      focus-indicators: true
+      font-size-controls: true
+      font-selection: true
+      text-spacing: true
+      link-highlight: true
+      transcript: true
+      pointer-indicator: true
+      alt-text-warnings: true
+      menu:
+        enabled: true
+        shortcut: a
+        position: right
+```
+
+Most of these are on by default; they are written out so the deck says what it is doing.
+
+## Nothing at all
+
+```yaml
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+```
+
+Enabling the plugin alone gives the skip link, the focus indicators, the zoomable viewport, reduced-motion support, the font and spacing controls, underlined links, slide landmarks, and the announcements.
+
+## Turning things off
+
+```yaml
+revealjs-a11y:
+  alt-text-warnings: false
+  announce-fragments: false
+```
+
+`alt-text-warnings` is the one most often turned off for a finished deck: it highlights images with no alt text, which is what you want while writing and not while presenting.
+
+## The pointer indicator
+
+```yaml
+revealjs-a11y:
+  pointer-indicator:
+    size: 120
+    colour: "rgba(178, 34, 34, 0.4)"
+    shortcut: p
+```
+
+`size` is clamped to between 16 and 800 pixels, and an invalid value falls back to the default with a console warning rather than failing.
+
+## Slide change cues
+
+```yaml
+revealjs-a11y:
+  slide-change-cue:
+    visual: true
+    audio: false
+```
+
+`true` enables both; the object form separates them, which is usually what a room full of people wants.
+
+## The transcript in print
+
+```yaml
+revealjs-a11y:
+  transcript:
+    print: true
+```
+
+The transcript is an overlay in the browser, toggled with <kbd>T</kbd>.
+With `print: true` it is also written below each slide in `print-pdf` output, which is the only part of the plugin that survives outside the browser.
+
+## Fonts
+
+```yaml
+revealjs-a11y:
+  font-families:
+    - name: "Atkinson Hyperlegible"
+      value: "'Atkinson Hyperlegible', sans-serif"
+      url: "https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible"
+    - name: "System"
+      value: "system-ui, sans-serif"
+```
+
+Each entry needs a `name` and a `value`; `url` loads a webfont for the ones not already present.
+
+## Source
+
+The repository ships a short, standalone starting point you can copy: [`example.qmd`](https://github.com/mcanouil/quarto-revealjs-a11y/blob/main/example.qmd).

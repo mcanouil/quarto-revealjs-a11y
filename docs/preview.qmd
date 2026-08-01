@@ -1,0 +1,51 @@
+---
+title: "A11y in a deck"
+subtitle: "Every control, live"
+format:
+  revealjs:
+    theme: default
+    slide-number: true
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      skip-navigation: true
+      focus-indicators: true
+      font-size-controls: true
+      font-selection: true
+      text-spacing: true
+      link-highlight: true
+      transcript: true
+      pointer-indicator: true
+      alt-text-warnings: true
+      menu:
+        enabled: true
+        shortcut: a
+        position: right
+---
+
+## Try the controls
+
+Press <kbd>A</kbd> for the settings menu, or use the shortcuts directly.
+
+| Key | Action |
+| --- | --- |
+| <kbd>Tab</kbd> | Reach the skip link |
+| <kbd>+</kbd> <kbd>-</kbd> <kbd>0</kbd> | Font size up, down, reset |
+| <kbd>T</kbd> | Transcript |
+| <kbd>P</kbd> | Pointer indicator |
+| <kbd>A</kbd> | Settings menu |
+
+## Links are underlined
+
+`link-highlight` underlines every [link](https://quarto.org) so colour is not the only thing distinguishing it.
+
+## Fragments are announced
+
+- []{.fragment} A fragment.
+- []{.fragment} Another.
+
+With `announce-fragments`, each is announced to a screen reader as it appears.
+
+## Preferences persist
+
+High contrast, font size, font family, text spacing, link highlight, and the cue toggles are kept in the browser, so they survive a reload.

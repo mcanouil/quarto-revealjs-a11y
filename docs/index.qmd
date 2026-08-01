@@ -1,0 +1,65 @@
+---
+title: "RevealJS A11y"
+subtitle: "Slides people can actually use."
+description: "What the a11y plugin adds to a RevealJS presentation, how to enable it, and the controls it gives a reader."
+authors:
+  - name: "Mickaël CANOUIL, _Ph.D._"
+    orcid: "0000-0002-3396-4549"
+    url: "https://mickael.canouil.fr"
+---
+
+A slide deck is one of the least accessible things on the web: text scaled to a projector, transitions that move without asking, no way to enlarge anything, and a screen reader that announces nothing as the slides change.
+
+`a11y` fixes what can be fixed from a plugin.
+It adds a skip link, real focus indicators, font size and spacing controls, a transcript, a pointer indicator, and announcements as slides and fragments change, all reachable from a settings menu and from the keyboard.
+
+## Installation
+
+```bash
+quarto add {{< var extension.reference >}}
+```
+
+This will install the extension under the `_extensions` subdirectory.
+If you are using version control, you will want to check in this directory.
+
+Or install it from your editor with [Quarto Wizard](https://m.canouil.dev/quarto-wizard):
+
+::: {.btn-group role="group" aria-label="Quarto Wizard installer options"}
+
+[Visual Studio Code](vscode://mcanouil.quarto-wizard/install?repo={{< var extension.wizard-reference >}}){.btn .btn-outline-primary title="Install {{< var extension.reference >}} in Visual Studio Code using the Quarto Wizard extension."}
+[Positron](positron://mcanouil.quarto-wizard/install?repo={{< var extension.wizard-reference >}}){.btn .btn-outline-primary title="Install {{< var extension.reference >}} in Positron using the Quarto Wizard extension."}
+[VSCodium](vscodium://mcanouil.quarto-wizard/install?repo={{< var extension.wizard-reference >}}){.btn .btn-outline-primary title="Install {{< var extension.reference >}} in VSCodium using the Quarto Wizard extension."}
+
+:::
+
+## Quick start
+
+```yaml
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+```
+
+That is enough: most of what it does is on by default.
+
+## Try it
+
+The [preview deck](preview.html) is built by this site with every control enabled.
+Press <kbd>A</kbd> for the settings menu, or use <kbd>+</kbd>, <kbd>-</kbd>, <kbd>0</kbd>, <kbd>T</kbd>, and <kbd>P</kbd>.
+
+See the [Reference](reference.qmd) for every option, and the [Examples](examples.qmd) for the configuration behind the deck.
+
+## Where it works
+
+RevealJS.
+
+The transcript can also be printed below each slide in `print-pdf` output, which is the one part that survives beyond the browser.
+
+## Links
+
+- [Reference](reference.qmd) for every option and shortcut.
+- [Examples](examples.qmd) for the configuration behind the deck.
+- [Preview deck](preview.html) to try the controls.
+- [Changelog](changelog.qmd) for what each release changed.
+- [Source and issues](https://github.com/mcanouil/quarto-revealjs-a11y) on GitHub.
