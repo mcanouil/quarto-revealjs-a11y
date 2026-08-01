@@ -5,7 +5,7 @@ A Quarto extension that makes Reveal.js presentations usable: a skip link, real 
 ## Installation
 
 ```bash
-quarto add mcanouil/quarto-revealjs-a11y@0.2.1
+quarto add mcanouil/quarto-revealjs-a11y@0.2.2
 ```
 
 This will install the extension under the `_extensions` subdirectory.
