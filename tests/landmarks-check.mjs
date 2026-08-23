@@ -12,7 +12,9 @@ if (!target) {
   process.exit(2);
 }
 
-const MAX_TAB_STOPS = 40;
+// Far above the real cycle, which is the settings menu, the skip link, and the
+// content of the slides on screen. The walk stops when it wraps around.
+const MAX_TAB_STOPS = 150;
 const FRAME_SLIDE = "embedded-frame";
 const WIDGET_SLIDE = "focusable-widget";
 const NESTED_SLIDE = "second-vertical-slide";
@@ -181,19 +183,37 @@ try {
     `Overview: clicking a slide did not select it (landed on "${selected}", expected "${FRAME_SLIDE}").`,
   );
 
+  // Content on other slides is deliberately reachable while the overview is
+  // open, because `inert` would also block the click that selects a slide.
+  // The click above closed the overview, so open it again.
+  await page.evaluate(() => window.Reveal.toggleOverview(true));
+  await page.waitForFunction(() => window.Reveal.isOverview());
+  stops = await tabStops("Overview");
+  check(
+    stops.some((s) => s.slide && !s.onCurrentSlide),
+    "Overview: content on slides other than the current one is not reachable, so the overview now isolates slides.",
+  );
+
   // Views that lay every slide out at once: nothing may be isolated in any of
   // them. reveal.js rebuilds the DOM around each slide in the last two, so a
-  // slide isolated before that rebuild can never be reached again.
-  for (const [view, query] of [
-    ["Print view (?print-pdf)", "?print-pdf"],
-    ["Print view (?view=print)", "?view=print"],
-    ["Scroll view", "?view=scroll"],
+  // slide isolated before that rebuild can never be reached again. The print
+  // view prints every slide, so no slide is the current one there. The scroll
+  // view keeps one.
+  for (const [view, query, expectedMarkers] of [
+    ["Print view (?print-pdf)", "?print-pdf", 0],
+    ["Print view (?view=print)", "?view=print", 0],
+    ["Scroll view", "?view=scroll", 1],
   ]) {
     await openDeck(query);
     const isolated = await inertSlides();
     check(
       isolated.length === 0,
       `${view}: ${isolated.length} slide(s) made inert: ${isolated.join(", ")}.`,
+    );
+    const viewMarkers = await currentMarkers();
+    check(
+      viewMarkers.length === expectedMarkers,
+      `${view}: ${viewMarkers.length} slide(s) carry aria-current, expected ${expectedMarkers}: ${viewMarkers.join(", ")}.`,
     );
   }
 

@@ -630,14 +630,27 @@ window.RevealjsA11y =
       updateCurrentSlideLandmarks();
     }
 
-    // The print view and the scroll view lay every slide out at once, and both
-    // rebuild the DOM around each slide, so no slide is isolated in either.
-    function showsEverySlide() {
+    // The print view prints every slide, so no slide is the current one there.
+    function isPrintView() {
       return (
         isPrintPdfView() ||
-        (typeof deck.isPrintView === "function" && deck.isPrintView()) ||
-        (typeof deck.isScrollView === "function" && deck.isScrollView())
+        (typeof deck.isPrintView === "function" && deck.isPrintView())
       );
+    }
+
+    // The scroll view puts every slide on one scrolling page. It keeps a
+    // current slide, but every other slide stays on screen.
+    function isScrollView() {
+      return typeof deck.isScrollView === "function" && deck.isScrollView();
+    }
+
+    function setSlideAttribute(slide, name, wanted) {
+      if (wanted === slide.hasAttribute(name)) return;
+      if (wanted) {
+        slide.setAttribute(name, name === "aria-current" ? "step" : "");
+      } else {
+        slide.removeAttribute(name);
+      }
     }
 
     function clearSlideIsolation() {
@@ -649,33 +662,30 @@ window.RevealjsA11y =
 
     // `inert` takes a slide out of the tab order and out of the accessibility
     // tree with one attribute, whatever the slide holds. reveal.js marks the
-    // slides it hides with `aria-hidden` itself, so this adds none. The
-    // overview shows every slide at once, and a slide must stay clickable
-    // there, so nothing is isolated while it is open.
+    // slides it hides with `aria-hidden` itself, so this adds none.
+    //
+    // Three views show every slide at once, and none of them isolates a slide:
+    // the overview, where a slide must stay clickable, and the print view and
+    // the scroll view, where reveal.js also rebuilds the DOM around each slide.
+    // Every slide is read here, not only the slides that match the landmark
+    // selector, because that selector matches nothing after the rebuild.
     function updateCurrentSlideLandmarks() {
       const currentSlide = deck.getCurrentSlide();
+      const printView = isPrintView();
+      const isolate =
+        currentSlide != null && !printView && !isScrollView() && !deck.isOverview();
 
-      if (!currentSlide || showsEverySlide()) {
-        clearSlideIsolation();
-        return;
-      }
-
-      const isolate = !deck.isOverview();
-
-      getLandmarkSlides().forEach((slide) => {
-        if (slide === currentSlide) {
-          slide.setAttribute("aria-current", "step");
-        } else {
-          slide.removeAttribute("aria-current");
-        }
-
-        const holdsCurrent =
-          slide === currentSlide || slide.contains(currentSlide);
-        if (isolate && !holdsCurrent) {
-          slide.setAttribute("inert", "");
-        } else {
-          slide.removeAttribute("inert");
-        }
+      revealElement.querySelectorAll(".slides section").forEach((slide) => {
+        setSlideAttribute(
+          slide,
+          "aria-current",
+          !printView && slide === currentSlide,
+        );
+        setSlideAttribute(
+          slide,
+          "inert",
+          isolate && !(slide === currentSlide || slide.contains(currentSlide)),
+        );
       });
     }
 
