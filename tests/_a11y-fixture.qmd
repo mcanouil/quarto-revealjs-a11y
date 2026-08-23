@@ -43,6 +43,8 @@ A widget that is focusable only through `tabindex`.
 <div id="fixture-widget" tabindex="0">A focusable widget.</div>
 ```
 
+<!-- A level-1 heading is how reveal.js builds a vertical stack. -->
+<!-- markdownlint-disable-next-line MD025 -->
 # Vertical stack
 
 ## First vertical slide

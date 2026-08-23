@@ -37,20 +37,33 @@ async function openDeck(query = "") {
   await page.waitForFunction(() => window.Reveal && window.Reveal.isReady());
 }
 
+// A wait that reports a timeout as a failed check, so the run always prints
+// every check it collected.
+async function waitFor(condition, message, argument = null) {
+  const met = await page
+    .waitForFunction(condition, argument, { timeout: 10000 })
+    .then(() => true)
+    .catch(() => false);
+  check(met, message);
+  return met;
+}
+
 // Selects a slide by its identifier, whether it stands on its own or sits
 // inside a vertical stack.
 async function goToSlide(id) {
   await page.evaluate((slideId) => {
     const slide = document.getElementById(slideId);
+    if (!slide) throw new Error(`No slide with the identifier "${slideId}".`);
     const top = slide.closest(".slides > section");
     const h = [...document.querySelectorAll(".slides > section")].indexOf(top);
     const v = [...top.querySelectorAll(":scope > section")].indexOf(slide);
     window.Reveal.slide(h, v < 0 ? undefined : v);
   }, id);
-  await page.waitForFunction(
+  await waitFor(
     (slideId) =>
       window.Reveal.getCurrentSlide() &&
       window.Reveal.getCurrentSlide().id === slideId,
+    `Deck view: the deck did not reach the slide "${id}".`,
     id,
   );
 }
@@ -68,10 +81,15 @@ async function tabStops(view) {
     const stop = await page.evaluate(() => {
       const el = document.activeElement;
       if (!el || el === document.body) return null;
-      // Any element seen twice means the walk has come round. The first stop
-      // alone is not enough: the walk can start part way through the cycle.
-      const wrapped = window.tabWalkSeen.includes(el);
-      window.tabWalkSeen.push(el);
+      // An element seen twice means the walk has come round. The first stop
+      // alone is not enough, because the walk can start part way through the
+      // cycle. A repeat of the stop before it does not count: Chromium reports
+      // an `iframe` as the active element both when the frame is the stop and
+      // when the focus is inside it.
+      const seen = window.tabWalkSeen;
+      if (seen.length > 0 && seen[seen.length - 1] === el) return null;
+      const wrapped = seen.includes(el);
+      seen.push(el);
       const slide = el.closest(".slides section");
       return {
         wrapped: wrapped,
@@ -278,21 +296,32 @@ try {
   await openDeck();
   await goToSlide(FRAME_SLIDE);
   await page.setViewportSize({ width: 420, height: 800 });
-  await page.waitForFunction(() => window.Reveal.isScrollView());
+  await waitFor(
+    () => window.Reveal.isScrollView(),
+    "Scroll view round trip: a narrow viewport did not start the scroll view.",
+  );
   await page.evaluate(
     (id) => document.getElementById(id).scrollIntoView(),
     WIDGET_SLIDE,
   );
-  await page.waitForFunction(
-    (id) => window.Reveal.getCurrentSlide().id === id,
-    WIDGET_SLIDE,
-    { timeout: 10000 },
-  ).catch(() => {});
+  await page
+    .waitForFunction(
+      (id) =>
+        window.Reveal.getCurrentSlide() &&
+        window.Reveal.getCurrentSlide().id === id,
+      WIDGET_SLIDE,
+      { timeout: 10000 },
+    )
+    .catch(() => {});
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.waitForFunction(() => !window.Reveal.isScrollView());
-  const strandedInert = await page.evaluate(
-    () => window.Reveal.getCurrentSlide().hasAttribute("inert"),
+  await waitFor(
+    () => !window.Reveal.isScrollView(),
+    "Scroll view round trip: a wide viewport did not leave the scroll view.",
   );
+  const strandedInert = await page.evaluate(() => {
+    const slide = window.Reveal.getCurrentSlide();
+    return slide ? slide.hasAttribute("inert") : true;
+  });
   check(
     strandedInert === false,
     "Scroll view round trip: the slide the reader comes back to is inert, so none of its content can be reached.",

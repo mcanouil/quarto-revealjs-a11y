@@ -28,6 +28,7 @@ jobs:
         run: quarto render tests
 
       - name: Install test dependencies
+        id: deps
         working-directory: tests
         run: |
           npm install
@@ -38,7 +39,7 @@ jobs:
         run: node axe-check.mjs _a11y-fixture.html
 
       - name: Run slide landmark keyboard check
-        if: ${{ !cancelled() && steps.render.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.render.outcome == 'success' && steps.deps.outcome == 'success' }}
         working-directory: tests
         run: node landmarks-check.mjs _a11y-fixture.html
 
