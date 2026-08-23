@@ -625,13 +625,18 @@ window.RevealjsA11y =
 
       // reveal.js hides the slide the reader leaves before it reports the
       // change, and the browser drops the focus at that moment, so the last
-      // element focused inside a slide is recorded as it happens.
+      // element focused inside a slide is recorded as it happens. The whole
+      // document is watched, because the menu, the font dialog, and the
+      // transcript sit outside the deck, and a focus in one of them must clear
+      // this record.
       landmarkFocusHandler = (event) => {
-        lastSlideFocus = event.target.closest(".slides section")
-          ? event.target
-          : null;
+        const target = event.target;
+        lastSlideFocus =
+          target instanceof Element && target.closest(".slides section")
+            ? target
+            : null;
       };
-      revealElement.addEventListener("focusin", landmarkFocusHandler);
+      document.addEventListener("focusin", landmarkFocusHandler);
 
       deckOn("ready", updateCurrentSlideLandmarks);
       deckOn("slidechanged", updateCurrentSlideLandmarks);
@@ -687,10 +692,16 @@ window.RevealjsA11y =
       }
     }
 
+    const FOCUS_TARGET_ATTRIBUTE = "data-a11y-focus-target";
+
     function clearSlideIsolation() {
       revealElement.querySelectorAll(".slides section").forEach((slide) => {
         slide.removeAttribute("inert");
         slide.removeAttribute("aria-current");
+        if (slide.hasAttribute(FOCUS_TARGET_ATTRIBUTE)) {
+          slide.removeAttribute("tabindex");
+          slide.removeAttribute(FOCUS_TARGET_ATTRIBUTE);
+        }
       });
     }
 
@@ -735,12 +746,18 @@ window.RevealjsA11y =
       // The reader had the focus inside the deck, and the slide they were on
       // is gone. Without this, the browser holds the focus on the body and the
       // next Tab restarts from the top of the document.
+      // The focus must still be in the deck, or nowhere. A dialog outside the
+      // deck keeps what it holds.
+      const focused = document.activeElement;
+      const focusInDeck =
+        focused === null ||
+        focused === document.body ||
+        revealElement.contains(focused);
       const focusLost =
         lastSlideFocus !== null &&
+        focusInDeck &&
         !currentSlide.contains(lastSlideFocus) &&
-        (document.activeElement === null ||
-          document.activeElement === document.body ||
-          !currentSlide.contains(document.activeElement));
+        !currentSlide.contains(focused);
       // The browser drops the focus of an element that becomes `inert` one
       // frame after the attribute is written, so the move waits two frames.
       if (focusLost && revealElement.contains(lastSlideFocus)) {
@@ -749,7 +766,22 @@ window.RevealjsA11y =
             const slide = deck.getCurrentSlide();
             if (!slide || slide.hasAttribute("inert")) return;
             if (slide.contains(document.activeElement)) return;
-            slide.setAttribute("tabindex", "-1");
+            // A dialog can have taken the focus in the meantime.
+            const holder = document.activeElement;
+            if (
+              holder !== null &&
+              holder !== document.body &&
+              !revealElement.contains(holder)
+            ) {
+              return;
+            }
+            // A slide takes the focus only with a `tabindex`. The one added
+            // here is marked, so the teardown removes it and leaves an
+            // author's own `tabindex` alone.
+            if (!slide.hasAttribute("tabindex")) {
+              slide.setAttribute("tabindex", "-1");
+              slide.setAttribute(FOCUS_TARGET_ATTRIBUTE, "");
+            }
             slide.focus({ preventScroll: true });
           }),
         );
@@ -2773,7 +2805,7 @@ window.RevealjsA11y =
           landmarkObserver = null;
         }
         if (landmarkFocusHandler) {
-          revealElement.removeEventListener("focusin", landmarkFocusHandler);
+          document.removeEventListener("focusin", landmarkFocusHandler);
           landmarkFocusHandler = null;
         }
         lastSlideFocus = null;

@@ -60,7 +60,7 @@ async function goToSlide(id) {
 async function tabStops(view) {
   await page.evaluate(() => {
     if (document.activeElement) document.activeElement.blur();
-    window.firstTabStop = null;
+    window.tabWalkSeen = [];
   });
   const stops = [];
   for (let i = 0; i < MAX_TAB_STOPS; i += 1) {
@@ -68,8 +68,10 @@ async function tabStops(view) {
     const stop = await page.evaluate(() => {
       const el = document.activeElement;
       if (!el || el === document.body) return null;
-      const wrapped = el === window.firstTabStop;
-      if (window.firstTabStop === null) window.firstTabStop = el;
+      // Any element seen twice means the walk has come round. The first stop
+      // alone is not enough: the walk can start part way through the cycle.
+      const wrapped = window.tabWalkSeen.includes(el);
+      window.tabWalkSeen.push(el);
       const slide = el.closest(".slides section");
       return {
         wrapped: wrapped,
@@ -203,6 +205,38 @@ try {
     focusHolder === FRAME_SLIDE,
     `Deck view: after leaving a slide with the focus inside it, the focus is on "${focusHolder}", expected the new slide.`,
   );
+
+  // A dialog outside the deck keeps the focus it holds. The deck can still
+  // change slide under it, through `autoSlide`, a swipe, or author code.
+  await goToSlide(WIDGET_SLIDE);
+  await page.evaluate((id) => document.getElementById(id).focus(), WIDGET);
+  await page.keyboard.press("a");
+  const menuOpen = await page
+    .waitForFunction(
+      () =>
+        document.activeElement !== document.body &&
+        document.activeElement.closest('[class*="revealjs-a11y-menu"]') !== null,
+      null,
+      { timeout: 5000 },
+    )
+    .then(() => true)
+    .catch(() => false);
+  check(menuOpen, "Deck view: the settings menu did not take the focus.");
+  await goToSlide(FRAME_SLIDE);
+  // The focus must not be pulled into the deck. reveal.js can drop it to the
+  // body on its own, which is not this extension's doing.
+  const menuHolder = await page.evaluate(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body) return "(body)";
+    return el.closest(".slides section")
+      ? `slide "${el.closest(".slides section").id}"`
+      : el.className || el.id || el.tagName.toLowerCase();
+  });
+  check(
+    !menuHolder.startsWith("slide "),
+    `Deck view: a slide change with the menu open moved the focus onto ${menuHolder}.`,
+  );
+  await page.keyboard.press("Escape");
 
   // Content on other slides is deliberately reachable while the overview is
   // open, because `inert` would also block the click that selects a slide.
