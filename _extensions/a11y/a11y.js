@@ -113,6 +113,29 @@ window.RevealjsA11y =
       return /print-pdf/i.test(window.location.search);
     }
 
+    // A slide takes the focus only with a `tabindex`. The one added here is
+    // marked, so the teardown removes it and leaves an author's own `tabindex`
+    // alone.
+    function focusSlide(slide, options) {
+      if (!slide) return;
+      if (!slide.hasAttribute("tabindex")) {
+        slide.setAttribute("tabindex", "-1");
+        slide.setAttribute(FOCUS_TARGET_ATTRIBUTE, "");
+      }
+      slide.focus(options);
+    }
+
+    // The focus is free to move when it is in the deck or nowhere. A dialog
+    // outside the deck keeps what it holds.
+    function focusIsFree() {
+      const holder = document.activeElement;
+      return (
+        holder === null ||
+        holder === document.body ||
+        revealElement.contains(holder)
+      );
+    }
+
     function normaliseKeys(obj) {
       if (!obj || typeof obj !== "object" || Array.isArray(obj)) return obj;
       const result = {};
@@ -327,11 +350,7 @@ window.RevealjsA11y =
 
       link.addEventListener("click", (e) => {
         e.preventDefault();
-        const currentSlide = deck.getCurrentSlide();
-        if (currentSlide) {
-          currentSlide.setAttribute("tabindex", "-1");
-          currentSlide.focus();
-        }
+        focusSlide(deck.getCurrentSlide());
       });
 
       revealElement.insertBefore(link, revealElement.firstChild);
@@ -683,15 +702,6 @@ window.RevealjsA11y =
       return typeof deck.isScrollView === "function" && deck.isScrollView();
     }
 
-    function setSlideAttribute(slide, name, wanted) {
-      if (wanted === slide.hasAttribute(name)) return;
-      if (wanted) {
-        slide.setAttribute(name, name === "aria-current" ? "step" : "");
-      } else {
-        slide.removeAttribute(name);
-      }
-    }
-
     const FOCUS_TARGET_ATTRIBUTE = "data-a11y-focus-target";
 
     function clearSlideIsolation() {
@@ -712,8 +722,9 @@ window.RevealjsA11y =
     // Three views show every slide at once, and none of them isolates a slide:
     // the overview, where a slide must stay clickable, and the print view and
     // the scroll view, where reveal.js also rebuilds the DOM around each slide.
-    // Every slide is read here, not only the slides that match the landmark
-    // selector, because that selector matches nothing after the rebuild.
+    // The slides that carry an attribute are read through that attribute, not
+    // through the landmark selector, because that selector matches nothing
+    // while reveal.js holds the slides in the wrappers of those two views.
     function updateCurrentSlideLandmarks() {
       const currentSlide = deck.getCurrentSlide();
       const printView = isPrintView();
@@ -723,66 +734,49 @@ window.RevealjsA11y =
         !isScrollView() &&
         !deck.isOverview();
 
-      // Every section is read, not only the sections that match the landmark
-      // selector, because that selector matches nothing while reveal.js holds
-      // the slides in the wrappers of the print view or the scroll view.
-      revealElement.querySelectorAll(".slides section").forEach((slide) => {
-        setSlideAttribute(
-          slide,
-          "aria-current",
-          !printView && slide === currentSlide,
-        );
-        if (!isolate) setSlideAttribute(slide, "inert", false);
-      });
+      const marked = printView ? null : currentSlide;
+      revealElement
+        .querySelectorAll(".slides section[aria-current]")
+        .forEach((slide) => {
+          if (slide !== marked) slide.removeAttribute("aria-current");
+        });
+      if (marked && marked.getAttribute("aria-current") !== "step") {
+        marked.setAttribute("aria-current", "step");
+      }
 
-      if (!isolate) return;
+      if (!isolate) {
+        revealElement
+          .querySelectorAll(".slides section[inert]")
+          .forEach((slide) => slide.removeAttribute("inert"));
+        return;
+      }
 
       // Only whole slides are isolated. A `section` that an author puts inside
       // a slide is part of that slide and keeps the state of its slide.
       getLandmarkSlides().forEach((slide) => {
-        setSlideAttribute(slide, "inert", !slide.contains(currentSlide));
+        slide.toggleAttribute("inert", !slide.contains(currentSlide));
       });
 
       // The reader had the focus inside the deck, and the slide they were on
       // is gone. Without this, the browser holds the focus on the body and the
       // next Tab restarts from the top of the document.
-      // The focus must still be in the deck, or nowhere. A dialog outside the
-      // deck keeps what it holds.
-      const focused = document.activeElement;
-      const focusInDeck =
-        focused === null ||
-        focused === document.body ||
-        revealElement.contains(focused);
       const focusLost =
         lastSlideFocus !== null &&
-        focusInDeck &&
+        revealElement.contains(lastSlideFocus) &&
         !currentSlide.contains(lastSlideFocus) &&
-        !currentSlide.contains(focused);
+        !currentSlide.contains(document.activeElement) &&
+        focusIsFree();
       // The browser drops the focus of an element that becomes `inert` one
       // frame after the attribute is written, so the move waits two frames.
-      if (focusLost && revealElement.contains(lastSlideFocus)) {
+      if (focusLost) {
         requestAnimationFrame(() =>
           requestAnimationFrame(() => {
             const slide = deck.getCurrentSlide();
             if (!slide || slide.hasAttribute("inert")) return;
             if (slide.contains(document.activeElement)) return;
             // A dialog can have taken the focus in the meantime.
-            const holder = document.activeElement;
-            if (
-              holder !== null &&
-              holder !== document.body &&
-              !revealElement.contains(holder)
-            ) {
-              return;
-            }
-            // A slide takes the focus only with a `tabindex`. The one added
-            // here is marked, so the teardown removes it and leaves an
-            // author's own `tabindex` alone.
-            if (!slide.hasAttribute("tabindex")) {
-              slide.setAttribute("tabindex", "-1");
-              slide.setAttribute(FOCUS_TARGET_ATTRIBUTE, "");
-            }
-            slide.focus({ preventScroll: true });
+            if (!focusIsFree()) return;
+            focusSlide(slide, { preventScroll: true });
           }),
         );
       }
