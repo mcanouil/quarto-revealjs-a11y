@@ -106,6 +106,10 @@ window.RevealjsA11y =
       return str.replace(/-([a-z])/g, (_match, letter) => letter.toUpperCase());
     }
 
+    function isPrintPdfView() {
+      return /print-pdf/i.test(window.location.search);
+    }
+
     function normaliseKeys(obj) {
       if (!obj || typeof obj !== "object" || Array.isArray(obj)) return obj;
       const result = {};
@@ -595,10 +599,14 @@ window.RevealjsA11y =
     // Slide Landmarks
     // =========================================================================
 
-    function setupSlideLandmarks() {
-      const slides = revealElement.querySelectorAll(
+    function getLandmarkSlides() {
+      return revealElement.querySelectorAll(
         ".slides > section, .slides > section > section",
       );
+    }
+
+    function setupSlideLandmarks() {
+      const slides = getLandmarkSlides();
       slides.forEach((slide, index) => {
         if (!slide.getAttribute("role")) {
           slide.setAttribute("role", "region");
@@ -612,44 +620,42 @@ window.RevealjsA11y =
         }
       });
 
+      // The print view lays every slide out on its own page, so each one is
+      // legitimately on screen and none of them is isolated.
+      if (isPrintPdfView()) return;
+
+      deckOn("ready", updateCurrentSlideLandmarks);
       deckOn("slidechanged", updateCurrentSlideLandmarks);
+      deckOn("overviewshown", updateCurrentSlideLandmarks);
+      deckOn("overviewhidden", updateCurrentSlideLandmarks);
       updateCurrentSlideLandmarks();
     }
 
-    const FOCUSABLE_SELECTOR =
-      'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
-
+    // `inert` takes a slide out of the tab order and out of the accessibility
+    // tree with one attribute, whatever the slide holds. The overview shows
+    // every slide at once, and a slide must stay clickable there, so nothing
+    // is isolated while it is open.
     function updateCurrentSlideLandmarks() {
-      const allSlides = revealElement.querySelectorAll(
-        ".slides > section, .slides > section > section",
-      );
       const currentSlide = deck.getCurrentSlide();
+      const isolate = !deck.isOverview();
 
-      allSlides.forEach((slide) => {
-        if (slide === currentSlide) {
-          slide.removeAttribute("aria-hidden");
+      getLandmarkSlides().forEach((slide) => {
+        const isCurrent =
+          slide === currentSlide ||
+          (currentSlide != null && slide.contains(currentSlide));
+
+        if (isCurrent) {
           slide.setAttribute("aria-current", "step");
-          slide.querySelectorAll(FOCUSABLE_SELECTOR).forEach((el) => {
-            const saved = el.getAttribute("data-a11y-tabindex");
-            if (saved !== null) {
-              el.setAttribute("tabindex", saved);
-              el.removeAttribute("data-a11y-tabindex");
-            } else if (el.getAttribute("tabindex") === "-1") {
-              el.removeAttribute("tabindex");
-            }
-          });
         } else {
-          slide.setAttribute("aria-hidden", "true");
           slide.removeAttribute("aria-current");
-          slide.querySelectorAll(FOCUSABLE_SELECTOR).forEach((el) => {
-            const current = el.getAttribute("tabindex");
-            if (current !== "-1") {
-              if (current !== null) {
-                el.setAttribute("data-a11y-tabindex", current);
-              }
-              el.setAttribute("tabindex", "-1");
-            }
-          });
+        }
+
+        if (isolate && !isCurrent) {
+          slide.setAttribute("inert", "");
+          slide.setAttribute("aria-hidden", "true");
+        } else {
+          slide.removeAttribute("inert");
+          slide.removeAttribute("aria-hidden");
         }
       });
     }
@@ -1134,7 +1140,7 @@ window.RevealjsA11y =
 
       const printEnabled =
         storageGet("transcript-print") === "true" || config.transcript.print;
-      if (printEnabled && /print-pdf/i.test(window.location.search)) {
+      if (printEnabled && isPrintPdfView()) {
         setupPrintTranscript();
       }
     }
@@ -2562,7 +2568,7 @@ window.RevealjsA11y =
         deck = reveal;
         config = resolveConfig(deck.getConfig());
         revealElement = deck.getRevealElement();
-        const isPrintPdf = /print-pdf/i.test(window.location.search);
+        const isPrintPdf = isPrintPdfView();
 
         if (!isPrintPdf) {
           if (config.skipNavigation) setupSkipNavigation();
@@ -2671,10 +2677,7 @@ window.RevealjsA11y =
           .forEach((slide) => {
             slide.removeAttribute("aria-hidden");
             slide.removeAttribute("aria-current");
-            slide.querySelectorAll("[data-a11y-tabindex]").forEach((el) => {
-              el.setAttribute("tabindex", el.getAttribute("data-a11y-tabindex"));
-              el.removeAttribute("data-a11y-tabindex");
-            });
+            slide.removeAttribute("inert");
           });
 
         const changeIndicator = document.body.querySelector(

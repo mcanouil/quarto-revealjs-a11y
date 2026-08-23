@@ -21,7 +21,15 @@ cd tests
 npm install
 npx playwright install --with-deps chromium
 node axe-check.mjs _a11y-fixture.html
+node landmarks-check.mjs _a11y-fixture.html
 ```
+
+## Slide landmark keyboard check
+
+`tests/landmarks-check.mjs` walks the tab order of the same fixture in a headless browser, because axe-core cannot see which slide an element belongs to.
+It checks that the current slide reaches its own `iframe` and its own `tabindex`-focusable widget, that no other slide is reachable, and that a slide is still reachable after the reader leaves it and comes back.
+A slide inside a vertical stack is checked as well, because the stack that holds it must stay live.
+It also checks the two views where every slide is legitimately on screen: a slide stays clickable in the overview, and no slide is made `inert` in the print view.
 
 To inspect any deck interactively, add `axe: {output: document}` under the `revealjs` format and open it with `quarto preview`; axe-core violations are reported on the page itself.
 Use the manual checklist below for behaviour axe-core cannot see.
