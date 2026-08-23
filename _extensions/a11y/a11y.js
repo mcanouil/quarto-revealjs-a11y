@@ -91,6 +91,9 @@ window.RevealjsA11y =
     let pointerMoveHandler = null;
     let pointerFocusHandler = null;
     let previousLang = null;
+    let landmarkObserver = null;
+    let landmarkFocusHandler = null;
+    let lastSlideFocus = null;
     const deckHandlers = [];
 
     function deckOn(event, handler) {
@@ -620,14 +623,45 @@ window.RevealjsA11y =
         }
       });
 
+      // reveal.js hides the slide the reader leaves before it reports the
+      // change, and the browser drops the focus at that moment, so the last
+      // element focused inside a slide is recorded as it happens.
+      landmarkFocusHandler = (event) => {
+        lastSlideFocus = event.target.closest(".slides section")
+          ? event.target
+          : null;
+      };
+      revealElement.addEventListener("focusin", landmarkFocusHandler);
+
       deckOn("ready", updateCurrentSlideLandmarks);
       deckOn("slidechanged", updateCurrentSlideLandmarks);
       deckOn("overviewshown", updateCurrentSlideLandmarks);
       deckOn("overviewhidden", updateCurrentSlideLandmarks);
-      // The scroll view can start on a narrow screen, so a resize can change
-      // which view the deck is in.
-      deckOn("resize", updateCurrentSlideLandmarks);
+      watchViewChanges();
       updateCurrentSlideLandmarks();
+    }
+
+    // reveal.js gives no event for a change of view. It marks the viewport
+    // with a class, and it rebuilds the slides from a copy of their markup
+    // that it took when the scroll view started. That copy holds the `inert`
+    // attributes of the moment it was taken, so the slide the reader comes
+    // back to can return isolated. Watch both changes and correct the result.
+    function watchViewChanges() {
+      const viewport =
+        typeof deck.getViewportElement === "function"
+          ? deck.getViewportElement()
+          : revealElement;
+      const slidesContainer = getSlidesContainer();
+      landmarkObserver = new MutationObserver(updateCurrentSlideLandmarks);
+      if (viewport) {
+        landmarkObserver.observe(viewport, {
+          attributes: true,
+          attributeFilter: ["class"],
+        });
+      }
+      if (slidesContainer) {
+        landmarkObserver.observe(slidesContainer, { childList: true });
+      }
     }
 
     // The print view prints every slide, so no slide is the current one there.
@@ -673,20 +707,53 @@ window.RevealjsA11y =
       const currentSlide = deck.getCurrentSlide();
       const printView = isPrintView();
       const isolate =
-        currentSlide != null && !printView && !isScrollView() && !deck.isOverview();
+        currentSlide != null &&
+        !printView &&
+        !isScrollView() &&
+        !deck.isOverview();
 
+      // Every section is read, not only the sections that match the landmark
+      // selector, because that selector matches nothing while reveal.js holds
+      // the slides in the wrappers of the print view or the scroll view.
       revealElement.querySelectorAll(".slides section").forEach((slide) => {
         setSlideAttribute(
           slide,
           "aria-current",
           !printView && slide === currentSlide,
         );
-        setSlideAttribute(
-          slide,
-          "inert",
-          isolate && !(slide === currentSlide || slide.contains(currentSlide)),
-        );
+        if (!isolate) setSlideAttribute(slide, "inert", false);
       });
+
+      if (!isolate) return;
+
+      // Only whole slides are isolated. A `section` that an author puts inside
+      // a slide is part of that slide and keeps the state of its slide.
+      getLandmarkSlides().forEach((slide) => {
+        setSlideAttribute(slide, "inert", !slide.contains(currentSlide));
+      });
+
+      // The reader had the focus inside the deck, and the slide they were on
+      // is gone. Without this, the browser holds the focus on the body and the
+      // next Tab restarts from the top of the document.
+      const focusLost =
+        lastSlideFocus !== null &&
+        !currentSlide.contains(lastSlideFocus) &&
+        (document.activeElement === null ||
+          document.activeElement === document.body ||
+          !currentSlide.contains(document.activeElement));
+      // The browser drops the focus of an element that becomes `inert` one
+      // frame after the attribute is written, so the move waits two frames.
+      if (focusLost && revealElement.contains(lastSlideFocus)) {
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            const slide = deck.getCurrentSlide();
+            if (!slide || slide.hasAttribute("inert")) return;
+            if (slide.contains(document.activeElement)) return;
+            slide.setAttribute("tabindex", "-1");
+            slide.focus({ preventScroll: true });
+          }),
+        );
+      }
     }
 
     // =========================================================================
@@ -2701,6 +2768,15 @@ window.RevealjsA11y =
           .querySelectorAll(`.${CSS_PREFIX}-missing-alt`)
           .forEach((el) => el.classList.remove(`${CSS_PREFIX}-missing-alt`));
 
+        if (landmarkObserver) {
+          landmarkObserver.disconnect();
+          landmarkObserver = null;
+        }
+        if (landmarkFocusHandler) {
+          revealElement.removeEventListener("focusin", landmarkFocusHandler);
+          landmarkFocusHandler = null;
+        }
+        lastSlideFocus = null;
         clearSlideIsolation();
 
         const changeIndicator = document.body.querySelector(

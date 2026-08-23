@@ -183,6 +183,27 @@ try {
     `Overview: clicking a slide did not select it (landed on "${selected}", expected "${FRAME_SLIDE}").`,
   );
 
+  // `inert` blurs what it holds, so a reader focused inside a slide loses the
+  // focus when that slide is left. The focus must land on the new slide, not
+  // on the body, or the next Tab restarts from the top of the document.
+  await goToSlide(WIDGET_SLIDE);
+  await page.evaluate((id) => document.getElementById(id).focus(), WIDGET);
+  await goToSlide(FRAME_SLIDE);
+  await page
+    .waitForFunction(() => document.activeElement !== document.body, null, {
+      timeout: 5000,
+    })
+    .catch(() => {});
+  const focusHolder = await page.evaluate(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body) return "(body)";
+    return el.id || el.tagName.toLowerCase();
+  });
+  check(
+    focusHolder === FRAME_SLIDE,
+    `Deck view: after leaving a slide with the focus inside it, the focus is on "${focusHolder}", expected the new slide.`,
+  );
+
   // Content on other slides is deliberately reachable while the overview is
   // open, because `inert` would also block the click that selects a slide.
   // The click above closed the overview, so open it again.
@@ -216,6 +237,37 @@ try {
       `${view}: ${viewMarkers.length} slide(s) carry aria-current, expected ${expectedMarkers}: ${viewMarkers.join(", ")}.`,
     );
   }
+
+  // A view can also change while the deck is open. reveal.js rebuilds the
+  // slides from a copy of their markup taken when the scroll view started, so
+  // a slide can come back isolated after the round trip.
+  await openDeck();
+  await goToSlide(FRAME_SLIDE);
+  await page.setViewportSize({ width: 420, height: 800 });
+  await page.waitForFunction(() => window.Reveal.isScrollView());
+  await page.evaluate(
+    (id) => document.getElementById(id).scrollIntoView(),
+    WIDGET_SLIDE,
+  );
+  await page.waitForFunction(
+    (id) => window.Reveal.getCurrentSlide().id === id,
+    WIDGET_SLIDE,
+    { timeout: 10000 },
+  ).catch(() => {});
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.waitForFunction(() => !window.Reveal.isScrollView());
+  const strandedInert = await page.evaluate(
+    () => window.Reveal.getCurrentSlide().hasAttribute("inert"),
+  );
+  check(
+    strandedInert === false,
+    "Scroll view round trip: the slide the reader comes back to is inert, so none of its content can be reached.",
+  );
+  stops = await tabStops("Scroll view round trip");
+  check(
+    stops.some((s) => s.onCurrentSlide),
+    "Scroll view round trip: no content on the current slide is reachable by Tab.",
+  );
 
   // The tab order of the print view must reach the content of every slide.
   await openDeck("?print-pdf");
