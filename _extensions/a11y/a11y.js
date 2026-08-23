@@ -620,42 +620,61 @@ window.RevealjsA11y =
         }
       });
 
-      // The print view lays every slide out on its own page, so each one is
-      // legitimately on screen and none of them is isolated.
-      if (isPrintPdfView()) return;
-
       deckOn("ready", updateCurrentSlideLandmarks);
       deckOn("slidechanged", updateCurrentSlideLandmarks);
       deckOn("overviewshown", updateCurrentSlideLandmarks);
       deckOn("overviewhidden", updateCurrentSlideLandmarks);
+      // The scroll view can start on a narrow screen, so a resize can change
+      // which view the deck is in.
+      deckOn("resize", updateCurrentSlideLandmarks);
       updateCurrentSlideLandmarks();
     }
 
+    // The print view and the scroll view lay every slide out at once, and both
+    // rebuild the DOM around each slide, so no slide is isolated in either.
+    function showsEverySlide() {
+      return (
+        isPrintPdfView() ||
+        (typeof deck.isPrintView === "function" && deck.isPrintView()) ||
+        (typeof deck.isScrollView === "function" && deck.isScrollView())
+      );
+    }
+
+    function clearSlideIsolation() {
+      revealElement.querySelectorAll(".slides section").forEach((slide) => {
+        slide.removeAttribute("inert");
+        slide.removeAttribute("aria-current");
+      });
+    }
+
     // `inert` takes a slide out of the tab order and out of the accessibility
-    // tree with one attribute, whatever the slide holds. The overview shows
-    // every slide at once, and a slide must stay clickable there, so nothing
-    // is isolated while it is open.
+    // tree with one attribute, whatever the slide holds. reveal.js marks the
+    // slides it hides with `aria-hidden` itself, so this adds none. The
+    // overview shows every slide at once, and a slide must stay clickable
+    // there, so nothing is isolated while it is open.
     function updateCurrentSlideLandmarks() {
       const currentSlide = deck.getCurrentSlide();
+
+      if (!currentSlide || showsEverySlide()) {
+        clearSlideIsolation();
+        return;
+      }
+
       const isolate = !deck.isOverview();
 
       getLandmarkSlides().forEach((slide) => {
-        const isCurrent =
-          slide === currentSlide ||
-          (currentSlide != null && slide.contains(currentSlide));
-
-        if (isCurrent) {
+        if (slide === currentSlide) {
           slide.setAttribute("aria-current", "step");
         } else {
           slide.removeAttribute("aria-current");
         }
 
-        if (isolate && !isCurrent) {
+        const holdsCurrent =
+          slide === currentSlide || slide.contains(currentSlide);
+        if (isolate && !holdsCurrent) {
           slide.setAttribute("inert", "");
-          slide.setAttribute("aria-hidden", "true");
         } else {
           slide.removeAttribute("inert");
-          slide.removeAttribute("aria-hidden");
         }
       });
     }
@@ -2672,13 +2691,7 @@ window.RevealjsA11y =
           .querySelectorAll(`.${CSS_PREFIX}-missing-alt`)
           .forEach((el) => el.classList.remove(`${CSS_PREFIX}-missing-alt`));
 
-        revealElement
-          .querySelectorAll(".slides > section, .slides > section > section")
-          .forEach((slide) => {
-            slide.removeAttribute("aria-hidden");
-            slide.removeAttribute("aria-current");
-            slide.removeAttribute("inert");
-          });
+        clearSlideIsolation();
 
         const changeIndicator = document.body.querySelector(
           `.${CSS_PREFIX}-slide-change-indicator`,
