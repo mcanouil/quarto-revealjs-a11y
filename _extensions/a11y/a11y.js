@@ -1947,6 +1947,8 @@ window.RevealjsA11y =
     }
 
     function closeMenu() {
+      if (!menuOpen) return;
+
       const menu = document.getElementById("revealjs-a11y-menu");
       const backdrop = document.querySelector(`.${CSS_PREFIX}-menu-backdrop`);
       if (!menu) return;

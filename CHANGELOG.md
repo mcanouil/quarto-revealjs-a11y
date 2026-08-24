@@ -6,6 +6,7 @@
 - fix: `slide-landmarks` keeps every slide available to assistive technology in the print view and the scroll view, and keeps every slide clickable in the overview. This holds when the reader changes view while the deck is open. (#25)
 - fix: `slide-landmarks` moves the focus to the new slide when the reader leaves a slide with the focus inside it. The next `Tab` continues from the slide, not from the top of the document. (#25)
 - fix: The accessibility settings panel uses `inert` while it is closed. `Tab` goes to the content of the slide, not through the controls of the panel.
+- fix: The accessibility settings panel gives the focus to the current slide when it closes and the control that held the focus is gone, or sits on a slide the deck has left.
 
 ## 0.2.2 (2026-08-01)
 

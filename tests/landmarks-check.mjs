@@ -160,7 +160,7 @@ async function focusHolder() {
     if (!el || el === document.body) return { slide: null, name: "(body)" };
     const slide = el.closest(".slides section");
     return {
-      slide: slide ? slide.id : null,
+      slide: slide ? slide.id || slide.getAttribute("aria-label") : null,
       name: el.className || el.id || el.tagName.toLowerCase(),
     };
   });
@@ -265,6 +265,28 @@ try {
   check(
     movedHolder.slide === FRAME_SLIDE,
     `Deck view: after leaving a slide with the focus inside it, the focus is on "${movedHolder.name}", expected the new slide.`,
+  );
+
+  // The panel gives the focus back to the control the reader opened it from,
+  // and takes the slide only when it cannot.
+  await goToSlide(WIDGET_SLIDE);
+  await page.evaluate((id) => document.getElementById(id).focus(), WIDGET);
+  await page.keyboard.press("a");
+  await waitFor(
+    (menuSelector) => !document.querySelector(menuSelector).inert,
+    "Deck view: the settings menu did not open.",
+    MENU,
+  );
+  await page.keyboard.press("Escape");
+  await waitFor(
+    (menuSelector) => document.querySelector(menuSelector).inert,
+    "Deck view: Escape did not close the settings menu.",
+    MENU,
+  );
+  const restoredHolder = await focusHolder();
+  check(
+    restoredHolder.name === WIDGET,
+    `Deck view: closing the menu left the focus on "${restoredHolder.name}", expected the control it was opened from.`,
   );
 
   // Every route a reader has to close the panel, each checked from the same
