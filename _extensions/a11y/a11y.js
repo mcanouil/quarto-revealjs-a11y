@@ -91,6 +91,10 @@ window.RevealjsA11y =
     let pointerMoveHandler = null;
     let pointerFocusHandler = null;
     let previousLang = null;
+    let landmarkObserver = null;
+    let landmarkFocusHandler = null;
+    let landmarkFrameId = null;
+    let lastSlideFocus = null;
     const deckHandlers = [];
 
     function deckOn(event, handler) {
@@ -104,6 +108,36 @@ window.RevealjsA11y =
 
     function kebabToCamel(str) {
       return str.replace(/-([a-z])/g, (_match, letter) => letter.toUpperCase());
+    }
+
+    function isPrintPdfView() {
+      return /print-pdf/i.test(window.location.search);
+    }
+
+    // A slide takes the focus only with a `tabindex`. The one added here is
+    // marked, so the teardown removes it and leaves an author's own `tabindex`
+    // alone.
+    function focusSlide(slide, options) {
+      if (!slide) return;
+      if (!slide.hasAttribute("tabindex")) {
+        slide.setAttribute("tabindex", "-1");
+        slide.setAttribute(FOCUS_TARGET_ATTRIBUTE, "");
+      }
+      slide.focus(options);
+    }
+
+    // The focus is free to move when it is in the deck or nowhere. A dialog
+    // outside the deck keeps what it holds, and so does the browser: the body
+    // is also the active element when the reader works in the address bar or
+    // in another tab.
+    function focusIsFree() {
+      if (!document.hasFocus()) return false;
+      const holder = document.activeElement;
+      return (
+        holder === null ||
+        holder === document.body ||
+        revealElement.contains(holder)
+      );
     }
 
     function normaliseKeys(obj) {
@@ -320,11 +354,7 @@ window.RevealjsA11y =
 
       link.addEventListener("click", (e) => {
         e.preventDefault();
-        const currentSlide = deck.getCurrentSlide();
-        if (currentSlide) {
-          currentSlide.setAttribute("tabindex", "-1");
-          currentSlide.focus();
-        }
+        focusSlide(deck.getCurrentSlide());
       });
 
       revealElement.insertBefore(link, revealElement.firstChild);
@@ -595,10 +625,14 @@ window.RevealjsA11y =
     // Slide Landmarks
     // =========================================================================
 
-    function setupSlideLandmarks() {
-      const slides = revealElement.querySelectorAll(
+    function getLandmarkSlides() {
+      return revealElement.querySelectorAll(
         ".slides > section, .slides > section > section",
       );
+    }
+
+    function setupSlideLandmarks() {
+      const slides = getLandmarkSlides();
       slides.forEach((slide, index) => {
         if (!slide.getAttribute("role")) {
           slide.setAttribute("role", "region");
@@ -612,46 +646,171 @@ window.RevealjsA11y =
         }
       });
 
+      // reveal.js hides the slide the reader leaves before it reports the
+      // change, and the browser drops the focus at that moment, so the last
+      // element focused inside a slide is recorded as it happens. The whole
+      // document is watched, because the menu, the font dialog, and the
+      // transcript sit outside the deck, and a focus in one of them must clear
+      // this record.
+      landmarkFocusHandler = (event) => {
+        const target = event.target;
+        lastSlideFocus =
+          target instanceof Element && target.closest(".slides section")
+            ? target
+            : null;
+      };
+      document.addEventListener("focusin", landmarkFocusHandler);
+
+      deckOn("ready", updateCurrentSlideLandmarks);
       deckOn("slidechanged", updateCurrentSlideLandmarks);
+      deckOn("overviewshown", updateCurrentSlideLandmarks);
+      deckOn("overviewhidden", updateCurrentSlideLandmarks);
+      watchViewChanges();
       updateCurrentSlideLandmarks();
     }
 
-    const FOCUSABLE_SELECTOR =
-      'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    // reveal.js gives no event for a change of view. It marks the viewport
+    // with a class, and it rebuilds the slides from a copy of their markup
+    // that it took when the scroll view started. That copy holds the `inert`
+    // attributes of the moment it was taken, so the slide the reader comes
+    // back to can return isolated. Watch both changes and correct the result.
+    function watchViewChanges() {
+      const viewport =
+        typeof deck.getViewportElement === "function"
+          ? deck.getViewportElement()
+          : revealElement;
+      const slidesContainer = getSlidesContainer();
+      landmarkObserver = new MutationObserver(updateCurrentSlideLandmarks);
+      if (viewport) {
+        landmarkObserver.observe(viewport, {
+          attributes: true,
+          attributeFilter: ["class"],
+        });
+      }
+      if (slidesContainer) {
+        landmarkObserver.observe(slidesContainer, { childList: true });
+      }
+    }
 
-    function updateCurrentSlideLandmarks() {
-      const allSlides = revealElement.querySelectorAll(
-        ".slides > section, .slides > section > section",
+    // The print view prints every slide, so no slide is the current one there.
+    function isPrintView() {
+      return (
+        isPrintPdfView() ||
+        (typeof deck.isPrintView === "function" && deck.isPrintView())
       );
-      const currentSlide = deck.getCurrentSlide();
+    }
 
-      allSlides.forEach((slide) => {
-        if (slide === currentSlide) {
-          slide.removeAttribute("aria-hidden");
-          slide.setAttribute("aria-current", "step");
-          slide.querySelectorAll(FOCUSABLE_SELECTOR).forEach((el) => {
-            const saved = el.getAttribute("data-a11y-tabindex");
-            if (saved !== null) {
-              el.setAttribute("tabindex", saved);
-              el.removeAttribute("data-a11y-tabindex");
-            } else if (el.getAttribute("tabindex") === "-1") {
-              el.removeAttribute("tabindex");
-            }
-          });
-        } else {
-          slide.setAttribute("aria-hidden", "true");
-          slide.removeAttribute("aria-current");
-          slide.querySelectorAll(FOCUSABLE_SELECTOR).forEach((el) => {
-            const current = el.getAttribute("tabindex");
-            if (current !== "-1") {
-              if (current !== null) {
-                el.setAttribute("data-a11y-tabindex", current);
-              }
-              el.setAttribute("tabindex", "-1");
-            }
-          });
-        }
+    // The scroll view puts every slide on one scrolling page. It keeps a
+    // current slide, but every other slide stays on screen.
+    function isScrollView() {
+      return typeof deck.isScrollView === "function" && deck.isScrollView();
+    }
+
+    // Each attribute the extension writes on a slide carries a marker, so the
+    // cleanup removes only what the extension added. A slide keeps whatever
+    // the author wrote on it, and a `section` nested inside a slide is never
+    // read as a slide, whichever view reveal.js has rebuilt the deck into.
+    const FOCUS_TARGET_ATTRIBUTE = "data-a11y-focus-target";
+    const ISOLATED_ATTRIBUTE = "data-a11y-isolated";
+    const CURRENT_ATTRIBUTE = "data-a11y-current";
+
+    function clearInertSlides() {
+      revealElement
+        .querySelectorAll(`.slides section[${ISOLATED_ATTRIBUTE}]`)
+        .forEach((slide) => {
+          slide.removeAttribute("inert");
+          slide.removeAttribute(ISOLATED_ATTRIBUTE);
+        });
+    }
+
+    function clearSlideIsolation() {
+      clearInertSlides();
+      revealElement
+        .querySelectorAll(
+          `.slides section[${CURRENT_ATTRIBUTE}], .slides section[${FOCUS_TARGET_ATTRIBUTE}]`,
+        )
+        .forEach((slide) => {
+          if (slide.hasAttribute(CURRENT_ATTRIBUTE)) {
+            slide.removeAttribute("aria-current");
+            slide.removeAttribute(CURRENT_ATTRIBUTE);
+          }
+          if (slide.hasAttribute(FOCUS_TARGET_ATTRIBUTE)) {
+            slide.removeAttribute("tabindex");
+            slide.removeAttribute(FOCUS_TARGET_ATTRIBUTE);
+          }
+        });
+    }
+
+    // `inert` takes a slide out of the tab order and out of the accessibility
+    // tree with one attribute, whatever the slide holds. reveal.js marks the
+    // slides it hides with `aria-hidden` itself, so this adds none.
+    //
+    // Three views show every slide at once, and none of them isolates a slide:
+    // the overview, where a slide must stay clickable, and the print view and
+    // the scroll view, where reveal.js also rebuilds the DOM around each slide.
+    // The slides that carry an attribute are read through that attribute, not
+    // through the landmark selector, because that selector matches nothing
+    // while reveal.js holds the slides in the wrappers of those two views.
+    function updateCurrentSlideLandmarks() {
+      const currentSlide = deck.getCurrentSlide();
+      const printView = isPrintView();
+      const isolate =
+        currentSlide != null &&
+        !printView &&
+        !isScrollView() &&
+        !deck.isOverview();
+
+      const marked = printView ? null : currentSlide;
+      revealElement
+        .querySelectorAll(`.slides section[${CURRENT_ATTRIBUTE}]`)
+        .forEach((slide) => {
+          if (slide !== marked) {
+            slide.removeAttribute("aria-current");
+            slide.removeAttribute(CURRENT_ATTRIBUTE);
+          }
+        });
+      if (marked && !marked.hasAttribute(CURRENT_ATTRIBUTE)) {
+        marked.setAttribute("aria-current", "step");
+        marked.setAttribute(CURRENT_ATTRIBUTE, "");
+      }
+
+      if (!isolate) {
+        clearInertSlides();
+        return;
+      }
+
+      // Only whole slides are isolated. A `section` that an author puts inside
+      // a slide is part of that slide and keeps the state of its slide.
+      getLandmarkSlides().forEach((slide) => {
+        const isolateThis = !slide.contains(currentSlide);
+        slide.toggleAttribute("inert", isolateThis);
+        slide.toggleAttribute(ISOLATED_ATTRIBUTE, isolateThis);
       });
+
+      // The reader had the focus inside the deck, and the slide they were on
+      // is gone. Without this, the browser holds the focus on the body and the
+      // next Tab restarts from the top of the document.
+      const focusLost =
+        lastSlideFocus !== null &&
+        revealElement.contains(lastSlideFocus) &&
+        !currentSlide.contains(lastSlideFocus) &&
+        !currentSlide.contains(document.activeElement) &&
+        focusIsFree();
+      // The browser drops the focus of an element that becomes `inert` one
+      // frame after the attribute is written, so the move waits two frames.
+      if (focusLost) {
+        landmarkFrameId = requestAnimationFrame(() => {
+          landmarkFrameId = requestAnimationFrame(() => {
+            landmarkFrameId = null;
+            const slide = deck.getCurrentSlide();
+            if (!slide || slide.hasAttribute("inert")) return;
+            if (slide.contains(document.activeElement)) return;
+            // A dialog can have taken the focus in the meantime.
+            if (!focusIsFree()) return;
+            focusSlide(slide, { preventScroll: true });
+          });
+        });
+      }
     }
 
     // =========================================================================
@@ -1134,7 +1293,7 @@ window.RevealjsA11y =
 
       const printEnabled =
         storageGet("transcript-print") === "true" || config.transcript.print;
-      if (printEnabled && /print-pdf/i.test(window.location.search)) {
+      if (printEnabled && isPrintPdfView()) {
         setupPrintTranscript();
       }
     }
@@ -2562,7 +2721,7 @@ window.RevealjsA11y =
         deck = reveal;
         config = resolveConfig(deck.getConfig());
         revealElement = deck.getRevealElement();
-        const isPrintPdf = /print-pdf/i.test(window.location.search);
+        const isPrintPdf = isPrintPdfView();
 
         if (!isPrintPdf) {
           if (config.skipNavigation) setupSkipNavigation();
@@ -2666,16 +2825,20 @@ window.RevealjsA11y =
           .querySelectorAll(`.${CSS_PREFIX}-missing-alt`)
           .forEach((el) => el.classList.remove(`${CSS_PREFIX}-missing-alt`));
 
-        revealElement
-          .querySelectorAll(".slides > section, .slides > section > section")
-          .forEach((slide) => {
-            slide.removeAttribute("aria-hidden");
-            slide.removeAttribute("aria-current");
-            slide.querySelectorAll("[data-a11y-tabindex]").forEach((el) => {
-              el.setAttribute("tabindex", el.getAttribute("data-a11y-tabindex"));
-              el.removeAttribute("data-a11y-tabindex");
-            });
-          });
+        if (landmarkObserver) {
+          landmarkObserver.disconnect();
+          landmarkObserver = null;
+        }
+        if (landmarkFocusHandler) {
+          document.removeEventListener("focusin", landmarkFocusHandler);
+          landmarkFocusHandler = null;
+        }
+        if (landmarkFrameId !== null) {
+          cancelAnimationFrame(landmarkFrameId);
+          landmarkFrameId = null;
+        }
+        lastSlideFocus = null;
+        clearSlideIsolation();
 
         const changeIndicator = document.body.querySelector(
           `.${CSS_PREFIX}-slide-change-indicator`,

@@ -53,7 +53,7 @@ options:
   slide-landmarks:
     type: boolean
     default: true
-    description: "Add ARIA landmark roles and labels to slides."
+    description: "Add ARIA landmark roles and labels to slides, and keep the content of other slides out of the tab order."
   alt-text-warnings:
     type: boolean
     default: false

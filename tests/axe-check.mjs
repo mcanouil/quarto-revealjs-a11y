@@ -1,12 +1,9 @@
 import { chromium } from "playwright";
-import { createServer } from "node:http";
-import { readFile } from "node:fs/promises";
-import { dirname, basename, extname, join, resolve, sep } from "node:path";
+import { serveDeck } from "./serve.mjs";
 
 // Loads a deck rendered with Quarto's built-in `axe: {output: json}`, which
 // injects axe-core (from a CDN), scans every slide, and logs the result as
-// JSON to the console. This script serves the deck over HTTP (axe-core is an
-// ES module that the browser refuses to load from file://), captures that
+// JSON to the console. This script serves the deck over HTTP, captures that
 // JSON, and fails the build on serious or critical violations.
 
 const target = process.argv[2];
@@ -15,46 +12,7 @@ if (!target) {
   process.exit(2);
 }
 
-const filePath = resolve(target);
-const root = dirname(filePath);
-
-const CONTENT_TYPES = {
-  ".html": "text/html; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
-  ".mjs": "text/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".json": "application/json; charset=utf-8",
-  ".svg": "image/svg+xml",
-  ".woff": "font/woff",
-  ".woff2": "font/woff2",
-  ".ttf": "font/ttf",
-  ".map": "application/json; charset=utf-8",
-};
-
-const server = createServer(async (req, res) => {
-  try {
-    const path = decodeURIComponent(new URL(req.url, "http://localhost").pathname);
-    const resolved = resolve(join(root, path));
-    if (resolved !== root && !resolved.startsWith(root + sep)) {
-      res.statusCode = 403;
-      res.end("Forbidden");
-      return;
-    }
-    const body = await readFile(resolved);
-    res.setHeader(
-      "Content-Type",
-      CONTENT_TYPES[extname(resolved).toLowerCase()] || "application/octet-stream",
-    );
-    res.end(body);
-  } catch (_e) {
-    res.statusCode = 404;
-    res.end("Not found");
-  }
-});
-
-await new Promise((r) => server.listen(0, "127.0.0.1", r));
-const { port } = server.address();
-const url = `http://127.0.0.1:${port}/${basename(filePath)}`;
+const { url, close } = await serveDeck(target);
 
 const browser = await chromium.launch();
 const context = await browser.newContext();
@@ -81,7 +39,7 @@ try {
   });
 } finally {
   await browser.close();
-  server.close();
+  close();
 }
 
 if (!axeResult) {

@@ -26,3 +26,33 @@ Un paragraphe en français pour vérifier l'annonce de changement de langue.
 ```r
 x <- c(1, 2, 3)
 ```
+
+## Embedded frame
+
+An embedded frame with no `tabindex`, which is tabbable by default.
+
+```{=html}
+<iframe id="fixture-frame" title="Embedded frame" srcdoc="<p>Frame content.</p>"></iframe>
+```
+
+## Focusable widget
+
+A widget that is focusable only through `tabindex`.
+
+```{=html}
+<div id="fixture-widget" tabindex="0">A focusable widget.</div>
+```
+
+<!-- A level-1 heading is how reveal.js builds a vertical stack. -->
+<!-- markdownlint-disable-next-line MD025 -->
+# Vertical stack
+
+## First vertical slide
+
+A slide inside a vertical stack.
+
+## Second vertical slide
+
+```{=html}
+<div id="fixture-nested-widget" tabindex="0">A widget in a vertical stack.</div>
+```

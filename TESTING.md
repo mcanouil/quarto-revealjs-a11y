@@ -21,7 +21,17 @@ cd tests
 npm install
 npx playwright install --with-deps chromium
 node axe-check.mjs _a11y-fixture.html
+node landmarks-check.mjs _a11y-fixture.html
 ```
+
+## Slide landmark keyboard check
+
+`tests/landmarks-check.mjs` walks the tab order of the same fixture in a headless browser, because axe-core cannot see which slide an element belongs to.
+It checks that the current slide reaches its own `iframe` and its own `tabindex`-focusable widget, that no other slide is reachable, and that a slide is still reachable after the reader leaves it and comes back.
+A slide inside a vertical stack is checked as well, because the stack that holds it must stay live.
+It also checks the views where every slide is legitimately on screen: a slide stays clickable in the overview, and no slide is made `inert` in the print view or the scroll view.
+A change of view while the deck is open is checked too, because reveal.js rebuilds the slides from a copy of their markup taken when the scroll view started.
+The last two checks are about the focus: it moves to the new slide when the reader leaves a slide with the focus inside it, and it stays where it is when a dialog outside the deck holds it.
 
 To inspect any deck interactively, add `axe: {output: document}` under the `revealjs` format and open it with `quarto preview`; axe-core violations are reported on the page itself.
 Use the manual checklist below for behaviour axe-core cannot see.
