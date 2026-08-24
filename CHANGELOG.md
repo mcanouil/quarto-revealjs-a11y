@@ -5,6 +5,7 @@
 - fix: `slide-landmarks` uses `inert` to take slides other than the current one out of the tab order. Content that is focusable only through `tabindex` returns to the tab order on its own slide, and content that is tabbable without a `tabindex`, such as an `iframe`, no longer stays in it. (#25)
 - fix: `slide-landmarks` keeps every slide available to assistive technology in the print view and the scroll view, and keeps every slide clickable in the overview. This holds when the reader changes view while the deck is open. (#25)
 - fix: `slide-landmarks` moves the focus to the new slide when the reader leaves a slide with the focus inside it. The next `Tab` continues from the slide, not from the top of the document. (#25)
+- fix: The accessibility settings panel uses `inert` while it is closed. `Tab` goes to the content of the slide, not through the controls of the panel.
 
 ## 0.2.2 (2026-08-01)
 

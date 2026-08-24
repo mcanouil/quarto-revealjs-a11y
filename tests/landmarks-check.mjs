@@ -97,6 +97,7 @@ async function tabStops(view) {
         tag: el.tagName.toLowerCase(),
         slide: slide ? slide.id || slide.getAttribute("aria-label") : null,
         onCurrentSlide: slide ? slide.classList.contains("present") : null,
+        inMenu: el.closest("#revealjs-a11y-menu") !== null,
       };
     });
     if (!stop) continue;
@@ -108,6 +109,16 @@ async function tabStops(view) {
     `${view}: the tab order did not return to its first stop within ${MAX_TAB_STOPS} stops, so the checks below may be incomplete.`,
   );
   return stops;
+}
+
+// The settings panel is a closed dialog until a reader opens it, so none of
+// its controls may sit in the tab order before that.
+function reportClosedMenuStops(stops, view) {
+  const inMenu = stops.filter((s) => s.inMenu);
+  check(
+    inMenu.length === 0,
+    `${view}: Tab reaches ${inMenu.length} control(s) inside the closed settings menu.`,
+  );
 }
 
 function reportOffSlideStops(stops, view) {
@@ -149,6 +160,7 @@ try {
     "Deck view: the iframe on the current slide is never reached by Tab.",
   );
   reportOffSlideStops(stops, "Deck view");
+  reportClosedMenuStops(stops, "Deck view");
 
   await goToSlide(WIDGET_SLIDE);
   stops = await tabStops("Deck view");
@@ -255,6 +267,8 @@ try {
     `Deck view: a slide change with the menu open moved the focus onto ${menuHolder}.`,
   );
   await page.keyboard.press("Escape");
+  stops = await tabStops("Deck view");
+  reportClosedMenuStops(stops, "Deck view, after the menu opened and closed");
 
   // Content on other slides is deliberately reachable while the overview is
   // open, because `inert` would also block the click that selects a slide.

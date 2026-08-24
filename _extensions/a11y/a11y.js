@@ -1934,6 +1934,7 @@ window.RevealjsA11y =
       syncMenuState();
 
       menu.setAttribute("aria-hidden", "false");
+      menu.inert = false;
       if (backdrop) backdrop.setAttribute("aria-hidden", "false");
 
       menuPreviousKeyboard = deck.getConfig().keyboard;
@@ -1966,6 +1967,12 @@ window.RevealjsA11y =
         menuPreviousFocus.focus();
       }
       menuPreviousFocus = null;
+
+      // `inert` takes the whole panel out of the tab order, which the closed
+      // panel needs and `aria-hidden` alone does not give. It comes after the
+      // focus goes back, because the browser drops the focus of an element
+      // that becomes inert.
+      menu.inert = true;
     }
 
     function toggleMenu() {
@@ -1995,6 +2002,7 @@ window.RevealjsA11y =
         "aria-modal": "true",
         "aria-labelledby": `${CSS_PREFIX}-menu-title`,
         "aria-hidden": "true",
+        inert: "",
         tabindex: "-1",
       });
 
