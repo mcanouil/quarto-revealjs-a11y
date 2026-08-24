@@ -1968,6 +1968,18 @@ window.RevealjsA11y =
       }
       menuPreviousFocus = null;
 
+      // The element that held the focus can be gone, or on a slide the deck
+      // has left, which is inert and takes no focus. The focus then stays in
+      // the panel, or falls to the body when the reader closed the panel with
+      // the pointer. The current slide takes it instead, or the next `Tab`
+      // restarts from the top of the document.
+      const focusHolder = document.activeElement;
+      const focusIsLost =
+        !focusHolder || (focusHolder === document.body && document.hasFocus());
+      if (menu.contains(focusHolder) || focusIsLost) {
+        focusSlide(deck.getCurrentSlide(), { preventScroll: true });
+      }
+
       // This write comes after the focus goes back, because the browser drops
       // the focus of an element that becomes inert.
       menu.inert = true;

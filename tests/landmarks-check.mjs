@@ -147,6 +147,16 @@ async function inertSlides() {
   );
 }
 
+// Names what holds the focus: the slide it sits on, or the element itself.
+async function focusHolder() {
+  return page.evaluate(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body) return "(body)";
+    const slide = el.closest(".slides section");
+    return slide ? slide.id : el.className || el.id || el.tagName.toLowerCase();
+  });
+}
+
 // Only one slide holds `aria-current`, even when a vertical stack holds it.
 async function currentMarkers() {
   return page.evaluate(() =>
@@ -232,14 +242,10 @@ try {
       timeout: 5000,
     })
     .catch(() => {});
-  const focusHolder = await page.evaluate(() => {
-    const el = document.activeElement;
-    if (!el || el === document.body) return "(body)";
-    return el.id || el.tagName.toLowerCase();
-  });
+  const movedFocusHolder = await focusHolder();
   check(
-    focusHolder === FRAME_SLIDE,
-    `Deck view: after leaving a slide with the focus inside it, the focus is on "${focusHolder}", expected the new slide.`,
+    movedFocusHolder === FRAME_SLIDE,
+    `Deck view: after leaving a slide with the focus inside it, the focus is on "${movedFocusHolder}", expected the new slide.`,
   );
 
   // A dialog outside the deck keeps the focus it holds. The deck can still
@@ -272,9 +278,83 @@ try {
     !menuHolder.startsWith("slide "),
     `Deck view: a slide change with the menu open moved the focus onto ${menuHolder}.`,
   );
+  // `Escape` reaches the panel through its own listener, so the focus goes
+  // back inside first. reveal.js can leave it on the body, and the deck
+  // keyboard is off while the panel is open.
+  await page.evaluate(
+    (menuSelector) => document.querySelector(menuSelector).focus(),
+    MENU,
+  );
   await page.keyboard.press("Escape");
+  await waitFor(
+    (menuSelector) => document.querySelector(menuSelector).inert,
+    "Deck view: Escape did not close the settings menu.",
+    MENU,
+  );
+
+  // The reader left the focus on a slide the deck has since left, so the panel
+  // cannot give the focus back to it. The focus must land on the current
+  // slide, or the next Tab restarts from the top of the document.
+  const closedFocusHolder = await focusHolder();
+  check(
+    closedFocusHolder === FRAME_SLIDE,
+    `Deck view: closing the menu left the focus on "${closedFocusHolder}", expected the current slide.`,
+  );
+
   // The panel must leave the tab order again once it is closed.
-  stops = await tabStops("Deck view, after the menu closed");
+  await tabStops("Deck view, after the menu closed");
+
+  // The same close, with the focus dropped to the body while the panel was
+  // open. A reader closes the panel with the mouse from there, because
+  // `Escape` no longer reaches it.
+  // The walk above can leave the focus inside the iframe on the slide, where
+  // the shortcut never reaches the deck.
+  await page.evaluate(() => window.Reveal.getCurrentSlide().focus());
+  await page.keyboard.press("a");
+  await waitFor(
+    (menuSelector) => !document.querySelector(menuSelector).inert,
+    "Deck view: the settings menu did not open for the second time.",
+    MENU,
+  );
+  await page.evaluate(() => document.activeElement.blur());
+  await page.locator(".revealjs-a11y-menu-close").click();
+  await waitFor(
+    (menuSelector) => document.querySelector(menuSelector).inert,
+    "Deck view: the close button did not close the settings menu.",
+    MENU,
+  );
+  const blurredFocusHolder = await focusHolder();
+  check(
+    blurredFocusHolder === FRAME_SLIDE,
+    `Deck view: closing the menu with the focus on the body left it on "${blurredFocusHolder}", expected the current slide.`,
+  );
+
+  // The backdrop closes the panel too, and a click on it focuses nothing. The
+  // deck has left the slide that held the focus, so the panel has no element
+  // to give it back to.
+  await goToSlide(WIDGET_SLIDE);
+  await page.evaluate((id) => document.getElementById(id).focus(), WIDGET);
+  await page.keyboard.press("a");
+  await waitFor(
+    (menuSelector) => !document.querySelector(menuSelector).inert,
+    "Deck view: the settings menu did not open for the third time.",
+    MENU,
+  );
+  await goToSlide(FRAME_SLIDE);
+  await page.evaluate(() => {
+    document.activeElement.blur();
+    document.querySelector(".revealjs-a11y-menu-backdrop").click();
+  });
+  await waitFor(
+    (menuSelector) => document.querySelector(menuSelector).inert,
+    "Deck view: the backdrop did not close the settings menu.",
+    MENU,
+  );
+  const backdropFocusHolder = await focusHolder();
+  check(
+    backdropFocusHolder === FRAME_SLIDE,
+    `Deck view: closing the menu from the backdrop left the focus on "${backdropFocusHolder}", expected the current slide.`,
+  );
 
   // Content on other slides is deliberately reachable while the overview is
   // open, because `inert` would also block the click that selects a slide.
