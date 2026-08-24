@@ -5,6 +5,9 @@ import { serveDeck } from "./serve.mjs";
 // every focusable element is reachable; on every other slide, none is. The
 // deck view and the print view have opposite requirements, and the overview
 // shows every slide at once, so each is checked on its own.
+// The settings panel shares the tab order with the slides, so it is checked
+// here too: it stays out of the order while it is closed, and it gives the
+// focus back to the deck when it closes.
 
 const target = process.argv[2];
 if (!target) {
@@ -12,9 +15,12 @@ if (!target) {
   process.exit(2);
 }
 
-// Far above the real cycle, which is the settings menu, the skip link, and the
-// content of the slides on screen. The walk stops when it wraps around.
+// Far above the real cycle, which is the skip link and the content of the
+// slides on screen. The walk stops when it wraps around.
 const MAX_TAB_STOPS = 150;
+const MENU = "#revealjs-a11y-menu";
+const MENU_CLOSE = ".revealjs-a11y-menu-close";
+const MENU_BACKDROP = ".revealjs-a11y-menu-backdrop";
 const FRAME_SLIDE = "embedded-frame";
 const WIDGET_SLIDE = "focusable-widget";
 const NESTED_SLIDE = "second-vertical-slide";
@@ -76,9 +82,10 @@ async function tabStops(view) {
     window.tabWalkSeen = [];
   });
   const stops = [];
+  let wrapped = false;
   for (let i = 0; i < MAX_TAB_STOPS; i += 1) {
     await page.keyboard.press("Tab");
-    const stop = await page.evaluate(() => {
+    const stop = await page.evaluate((menuSelector) => {
       const el = document.activeElement;
       if (!el || el === document.body) return null;
       // An element seen twice means the walk has come round. The first stop
@@ -97,17 +104,34 @@ async function tabStops(view) {
         tag: el.tagName.toLowerCase(),
         slide: slide ? slide.id || slide.getAttribute("aria-label") : null,
         onCurrentSlide: slide ? slide.classList.contains("present") : null,
+        inMenu: el.closest(menuSelector) !== null,
       };
-    });
+    }, MENU);
     if (!stop) continue;
-    if (stop.wrapped) return stops;
+    if (stop.wrapped) {
+      wrapped = true;
+      break;
+    }
     stops.push(stop);
   }
   check(
-    false,
+    wrapped,
     `${view}: the tab order did not return to its first stop within ${MAX_TAB_STOPS} stops, so the checks below may be incomplete.`,
   );
+  reportClosedMenuStops(stops, view);
   return stops;
+}
+
+// The settings panel is a closed dialog until a reader opens it, so none of its
+// controls may sit in the tab order. Every walk is checked, because no walk
+// runs while the panel is open.
+function reportClosedMenuStops(stops, view) {
+  for (const stop of stops.filter((s) => s.inMenu)) {
+    check(
+      false,
+      `${view}: Tab reaches ${stop.tag}#${stop.id || "(no id)"} inside the closed settings menu.`,
+    );
+  }
 }
 
 function reportOffSlideStops(stops, view) {
@@ -127,6 +151,29 @@ async function inertSlides() {
       .filter((s) => s.hasAttribute("inert"))
       .map((s) => s.id || s.getAttribute("aria-label") || "(stack)"),
   );
+}
+
+// Names what holds the focus, and the slide it sits on when it sits on one.
+async function focusHolder() {
+  return page.evaluate(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body) return { slide: null, name: "(body)" };
+    const slide = el.closest(".slides section");
+    return {
+      slide: slide ? slide.id || slide.getAttribute("aria-label") : null,
+      name: el.className || el.id || el.tagName.toLowerCase(),
+    };
+  });
+}
+
+// A click from inside the page. It does not focus its target, so the panel
+// closes with the focus on the body, and it does not wait for the panel to
+// slide in, which a click through the browser does.
+function clickInPage(selector) {
+  return page.evaluate((target) => {
+    document.activeElement.blur();
+    document.querySelector(target).click();
+  }, selector);
 }
 
 // Only one slide holds `aria-current`, even when a vertical stack holds it.
@@ -214,47 +261,100 @@ try {
       timeout: 5000,
     })
     .catch(() => {});
-  const focusHolder = await page.evaluate(() => {
-    const el = document.activeElement;
-    if (!el || el === document.body) return "(body)";
-    return el.id || el.tagName.toLowerCase();
-  });
+  const movedHolder = await focusHolder();
   check(
-    focusHolder === FRAME_SLIDE,
-    `Deck view: after leaving a slide with the focus inside it, the focus is on "${focusHolder}", expected the new slide.`,
+    movedHolder.slide === FRAME_SLIDE,
+    `Deck view: after leaving a slide with the focus inside it, the focus is on "${movedHolder.name}", expected the new slide.`,
   );
 
-  // A dialog outside the deck keeps the focus it holds. The deck can still
-  // change slide under it, through `autoSlide`, a swipe, or author code.
+  // The panel gives the focus back to the control the reader opened it from,
+  // and takes the slide only when it cannot.
   await goToSlide(WIDGET_SLIDE);
   await page.evaluate((id) => document.getElementById(id).focus(), WIDGET);
   await page.keyboard.press("a");
-  const menuOpen = await page
-    .waitForFunction(
-      () =>
-        document.activeElement !== document.body &&
-        document.activeElement.closest('[class*="revealjs-a11y-menu"]') !== null,
-      null,
-      { timeout: 5000 },
-    )
-    .then(() => true)
-    .catch(() => false);
-  check(menuOpen, "Deck view: the settings menu did not take the focus.");
-  await goToSlide(FRAME_SLIDE);
-  // The focus must not be pulled into the deck. reveal.js can drop it to the
-  // body on its own, which is not this extension's doing.
-  const menuHolder = await page.evaluate(() => {
-    const el = document.activeElement;
-    if (!el || el === document.body) return "(body)";
-    return el.closest(".slides section")
-      ? `slide "${el.closest(".slides section").id}"`
-      : el.className || el.id || el.tagName.toLowerCase();
-  });
-  check(
-    !menuHolder.startsWith("slide "),
-    `Deck view: a slide change with the menu open moved the focus onto ${menuHolder}.`,
+  await waitFor(
+    (menuSelector) => !document.querySelector(menuSelector).inert,
+    "Deck view: the settings menu did not open.",
+    MENU,
   );
   await page.keyboard.press("Escape");
+  await waitFor(
+    (menuSelector) => document.querySelector(menuSelector).inert,
+    "Deck view: Escape did not close the settings menu.",
+    MENU,
+  );
+  const restoredHolder = await focusHolder();
+  check(
+    restoredHolder.name === WIDGET,
+    `Deck view: closing the menu left the focus on "${restoredHolder.name}", expected the control it was opened from.`,
+  );
+
+  // Every route a reader has to close the panel, each checked from the same
+  // state: the panel holds the focus, and the deck has changed slide under it
+  // through `autoSlide`, a swipe, or author code.
+  // `Escape` reaches the panel through its own listener, so the focus goes
+  // back inside first: reveal.js can leave it on the body, and the deck
+  // keyboard is off while the panel is open.
+  const closeRoutes = [
+    [
+      "Escape",
+      async () => {
+        await page.evaluate(
+          (menuSelector) => document.querySelector(menuSelector).focus(),
+          MENU,
+        );
+        await page.keyboard.press("Escape");
+      },
+    ],
+    ["the close button", () => clickInPage(MENU_CLOSE)],
+    ["the backdrop", () => clickInPage(MENU_BACKDROP)],
+  ];
+
+  for (const [route, closePanel] of closeRoutes) {
+    await goToSlide(WIDGET_SLIDE);
+    await page.evaluate((id) => document.getElementById(id).focus(), WIDGET);
+    await page.keyboard.press("a");
+    await waitFor(
+      (menuSelector) => !document.querySelector(menuSelector).inert,
+      `Deck view, ${route}: the settings menu did not open.`,
+      MENU,
+    );
+    const menuTookFocus = await page.evaluate(
+      (menuSelector) => document.activeElement.closest(menuSelector) !== null,
+      MENU,
+    );
+    check(
+      menuTookFocus,
+      `Deck view, ${route}: the settings menu did not take the focus.`,
+    );
+
+    // The focus must not be pulled into the deck. reveal.js can drop it to
+    // the body on its own, which is not this extension's doing.
+    await goToSlide(FRAME_SLIDE);
+    const openHolder = await focusHolder();
+    check(
+      openHolder.slide === null,
+      `Deck view, ${route}: a slide change with the menu open moved the focus onto slide "${openHolder.slide}".`,
+    );
+
+    // The panel cannot give the focus back to the slide the deck has left,
+    // which is inert. The current slide takes it, or the next Tab restarts
+    // from the top of the document.
+    await closePanel();
+    await waitFor(
+      (menuSelector) => document.querySelector(menuSelector).inert,
+      `Deck view, ${route}: the settings menu did not close.`,
+      MENU,
+    );
+    const closedHolder = await focusHolder();
+    check(
+      closedHolder.slide === FRAME_SLIDE,
+      `Deck view, ${route}: closing the menu left the focus on "${closedHolder.name}", expected the current slide.`,
+    );
+
+    // The panel must leave the tab order again once it is closed.
+    await tabStops(`Deck view, after the menu closed with ${route}`);
+  }
 
   // Content on other slides is deliberately reachable while the overview is
   // open, because `inert` would also block the click that selects a slide.

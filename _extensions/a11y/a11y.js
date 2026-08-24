@@ -1934,6 +1934,7 @@ window.RevealjsA11y =
       syncMenuState();
 
       menu.setAttribute("aria-hidden", "false");
+      menu.inert = false;
       if (backdrop) backdrop.setAttribute("aria-hidden", "false");
 
       menuPreviousKeyboard = deck.getConfig().keyboard;
@@ -1946,6 +1947,8 @@ window.RevealjsA11y =
     }
 
     function closeMenu() {
+      if (!menuOpen) return;
+
       const menu = document.getElementById("revealjs-a11y-menu");
       const backdrop = document.querySelector(`.${CSS_PREFIX}-menu-backdrop`);
       if (!menu) return;
@@ -1966,6 +1969,24 @@ window.RevealjsA11y =
         menuPreviousFocus.focus();
       }
       menuPreviousFocus = null;
+
+      // The element that held the focus can be gone, or on a slide the deck
+      // has left, which is inert and takes no focus. The focus then stays in
+      // the panel, or falls to the body when the reader closed the panel with
+      // the pointer. The current slide takes it instead, or the next `Tab`
+      // restarts from the top of the document.
+      const focusHolder = document.activeElement;
+      if (
+        !focusHolder ||
+        focusHolder === document.body ||
+        menu.contains(focusHolder)
+      ) {
+        focusSlide(deck.getCurrentSlide(), { preventScroll: true });
+      }
+
+      // This write comes after the focus goes back, because the browser drops
+      // the focus of an element that becomes inert.
+      menu.inert = true;
     }
 
     function toggleMenu() {
@@ -1997,6 +2018,8 @@ window.RevealjsA11y =
         "aria-hidden": "true",
         tabindex: "-1",
       });
+      // The panel is built closed, so it starts out of the tab order.
+      menu.inert = true;
 
       // Header
       const header = createElement("div", {
