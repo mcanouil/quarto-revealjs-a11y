@@ -1974,9 +1974,11 @@ window.RevealjsA11y =
       // the pointer. The current slide takes it instead, or the next `Tab`
       // restarts from the top of the document.
       const focusHolder = document.activeElement;
-      const focusIsLost =
-        !focusHolder || (focusHolder === document.body && document.hasFocus());
-      if (menu.contains(focusHolder) || focusIsLost) {
+      if (
+        !focusHolder ||
+        focusHolder === document.body ||
+        menu.contains(focusHolder)
+      ) {
         focusSlide(deck.getCurrentSlide(), { preventScroll: true });
       }
 
