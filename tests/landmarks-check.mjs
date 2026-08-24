@@ -12,9 +12,10 @@ if (!target) {
   process.exit(2);
 }
 
-// Far above the real cycle, which is the settings menu, the skip link, and the
-// content of the slides on screen. The walk stops when it wraps around.
+// Far above the real cycle, which is the skip link and the content of the
+// slides on screen. The walk stops when it wraps around.
 const MAX_TAB_STOPS = 150;
+const MENU = "#revealjs-a11y-menu";
 const FRAME_SLIDE = "embedded-frame";
 const WIDGET_SLIDE = "focusable-widget";
 const NESTED_SLIDE = "second-vertical-slide";
@@ -78,7 +79,7 @@ async function tabStops(view) {
   const stops = [];
   for (let i = 0; i < MAX_TAB_STOPS; i += 1) {
     await page.keyboard.press("Tab");
-    const stop = await page.evaluate(() => {
+    const stop = await page.evaluate((menuSelector) => {
       const el = document.activeElement;
       if (!el || el === document.body) return null;
       // An element seen twice means the walk has come round. The first stop
@@ -97,28 +98,34 @@ async function tabStops(view) {
         tag: el.tagName.toLowerCase(),
         slide: slide ? slide.id || slide.getAttribute("aria-label") : null,
         onCurrentSlide: slide ? slide.classList.contains("present") : null,
-        inMenu: el.closest("#revealjs-a11y-menu") !== null,
+        inMenu: el.closest(menuSelector) !== null,
       };
-    });
+    }, MENU);
     if (!stop) continue;
-    if (stop.wrapped) return stops;
+    if (stop.wrapped) {
+      reportClosedMenuStops(stops, view);
+      return stops;
+    }
     stops.push(stop);
   }
   check(
     false,
     `${view}: the tab order did not return to its first stop within ${MAX_TAB_STOPS} stops, so the checks below may be incomplete.`,
   );
+  reportClosedMenuStops(stops, view);
   return stops;
 }
 
-// The settings panel is a closed dialog until a reader opens it, so none of
-// its controls may sit in the tab order before that.
+// The settings panel is a closed dialog until a reader opens it, so none of its
+// controls may sit in the tab order. Every walk is checked, because no walk
+// runs while the panel is open.
 function reportClosedMenuStops(stops, view) {
-  const inMenu = stops.filter((s) => s.inMenu);
-  check(
-    inMenu.length === 0,
-    `${view}: Tab reaches ${inMenu.length} control(s) inside the closed settings menu.`,
-  );
+  for (const stop of stops.filter((s) => s.inMenu)) {
+    check(
+      false,
+      `${view}: Tab reaches ${stop.tag}#${stop.id || "(no id)"} inside the closed settings menu.`,
+    );
+  }
 }
 
 function reportOffSlideStops(stops, view) {
@@ -160,7 +167,6 @@ try {
     "Deck view: the iframe on the current slide is never reached by Tab.",
   );
   reportOffSlideStops(stops, "Deck view");
-  reportClosedMenuStops(stops, "Deck view");
 
   await goToSlide(WIDGET_SLIDE);
   stops = await tabStops("Deck view");
@@ -243,10 +249,10 @@ try {
   await page.keyboard.press("a");
   const menuOpen = await page
     .waitForFunction(
-      () =>
+      (menuSelector) =>
         document.activeElement !== document.body &&
-        document.activeElement.closest('[class*="revealjs-a11y-menu"]') !== null,
-      null,
+        document.activeElement.closest(menuSelector) !== null,
+      MENU,
       { timeout: 5000 },
     )
     .then(() => true)
@@ -267,8 +273,8 @@ try {
     `Deck view: a slide change with the menu open moved the focus onto ${menuHolder}.`,
   );
   await page.keyboard.press("Escape");
-  stops = await tabStops("Deck view");
-  reportClosedMenuStops(stops, "Deck view, after the menu opened and closed");
+  // The panel must leave the tab order again once it is closed.
+  stops = await tabStops("Deck view, after the menu closed");
 
   // Content on other slides is deliberately reachable while the overview is
   // open, because `inert` would also block the click that selects a slide.

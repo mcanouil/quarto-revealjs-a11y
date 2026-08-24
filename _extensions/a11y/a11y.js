@@ -1968,10 +1968,8 @@ window.RevealjsA11y =
       }
       menuPreviousFocus = null;
 
-      // `inert` takes the whole panel out of the tab order, which the closed
-      // panel needs and `aria-hidden` alone does not give. It comes after the
-      // focus goes back, because the browser drops the focus of an element
-      // that becomes inert.
+      // This write comes after the focus goes back, because the browser drops
+      // the focus of an element that becomes inert.
       menu.inert = true;
     }
 
@@ -2002,9 +2000,10 @@ window.RevealjsA11y =
         "aria-modal": "true",
         "aria-labelledby": `${CSS_PREFIX}-menu-title`,
         "aria-hidden": "true",
-        inert: "",
         tabindex: "-1",
       });
+      // The panel is built closed, so it starts out of the tab order.
+      menu.inert = true;
 
       // Header
       const header = createElement("div", {
