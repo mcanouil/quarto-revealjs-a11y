@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Documentation
+
+- docs: Serve the extension's social card as the Open Graph image, so a shared link shows the card rather than the first image on the page. (#31)
+
 ## 0.2.3 (2026-08-24)
 
 - fix: `slide-landmarks` uses `inert` to take slides other than the current one out of the tab order. Content that is focusable only through `tabindex` returns to the tab order on its own slide, and content that is tabbable without a `tabindex`, such as an `iframe`, no longer stays in it. (#25)
