@@ -20,9 +20,15 @@ website:
   title: "RevealJS A11y"
   description: "A RevealJS plugin that makes a Quarto presentation usable: skip links, focus indicators, font and spacing controls, a transcript, and screen reader announcements."
   # No trailing slash: Quarto builds the social image URL by concatenating this
-  # with a leading-slash image path, without normalising.
+  # with the image path, without normalising.
   site-url: &site-url https://m.canouil.dev/quarto-revealjs-a11y
   repo-url: https://github.com/mcanouil/quarto-revealjs-a11y
+  open-graph:
+    image: assets/social/og-image.png
+    image-alt: "The quarto-revealjs-a11y social card: the extension name and the \"extension\" badge over the line \"Comprehensive accessibility features for Reveal.js slides\", beside a dark code window showing slides.qmd."
+  twitter-card:
+    image: assets/social/og-image.png
+    image-alt: "The quarto-revealjs-a11y social card: the extension name and the \"extension\" badge over the line \"Comprehensive accessibility features for Reveal.js slides\", beside a dark code window showing slides.qmd."
   # The Quarto project root is docs/, so without this the "Edit this page" links
   # point at the repository root and 404.
   repo-subdir: docs
