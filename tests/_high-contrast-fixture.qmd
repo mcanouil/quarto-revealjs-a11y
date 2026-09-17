@@ -2,11 +2,16 @@
 title: "High contrast fixture"
 format:
   revealjs:
+    # A dark theme, so a background the high-contrast rules repaint white is
+    # not white to begin with. With the default theme the background checks
+    # pass whether or not the rules apply.
+    theme: dark
     revealjs-plugins:
       - a11y
     revealjs-a11y:
       high-contrast: true
       alt-text-warnings: false
+      pointer-indicator: true
 ---
 
 ## A slide

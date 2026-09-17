@@ -32,6 +32,26 @@ function check(condition, message) {
   if (!condition) failures.push(message);
 }
 
+/**
+ * Wait for the settings panel to open or close.
+ *
+ * The panel is closed with `inert` and `aria-hidden` rather than by being
+ * hidden, so it stays laid out and a visibility wait never settles.
+ *
+ * @param {boolean} open
+ */
+async function waitForMenu(open) {
+  await page.waitForFunction(
+    (wantOpen) => {
+      const menu = document.querySelector("#revealjs-a11y-menu");
+      if (!menu) return false;
+      return menu.getAttribute("aria-hidden") === (wantOpen ? "false" : "true");
+    },
+    open,
+    { timeout: 10000 },
+  );
+}
+
 try {
   await page.goto(url, { waitUntil: "networkidle" });
   await page.waitForFunction(() => window.Reveal && Reveal.isReady(), null, {
@@ -47,7 +67,7 @@ try {
 
   // Open the settings panel, which is what the dead rules were written for.
   await page.keyboard.press("a");
-  await page.waitForSelector("#revealjs-a11y-menu", { state: "visible" });
+  await waitForMenu(true);
 
   const menu = await page.evaluate(() => {
     const style = getComputedStyle(
@@ -81,8 +101,51 @@ try {
     `the viewport background is ${viewport}, expected ${WHITE}`,
   );
 
+  // Close the panel before reaching the other chrome, so its key bindings
+  // are not swallowed by the dialogue.
+  await page.keyboard.press("Escape");
+  await waitForMenu(false);
+
+  // The transcript overlay, which carries its own high-contrast rule.
+  await page.keyboard.press("t");
+  await page.waitForSelector(".revealjs-a11y-transcript", { state: "visible" });
+  const transcript = await page.evaluate(() => {
+    const style = getComputedStyle(
+      document.querySelector(".revealjs-a11y-transcript"),
+    );
+    return { background: style.backgroundColor, colour: style.color };
+  });
+  check(
+    transcript.background === WHITE,
+    `the transcript background is ${transcript.background}, expected ${WHITE}`,
+  );
+  check(
+    transcript.colour === BLACK,
+    `the transcript text is ${transcript.colour}, expected ${BLACK}`,
+  );
+  await page.keyboard.press("Escape");
+
+  // The pointer indicator, which the fixture enables.
+  await page.keyboard.press("p");
+  await page.waitForSelector(".revealjs-a11y-pointer", { state: "attached" });
+  const pointer = await page.evaluate(() => {
+    const style = getComputedStyle(document.querySelector(".revealjs-a11y-pointer"));
+    return { border: style.borderTopColor, width: style.borderTopWidth };
+  });
+  check(
+    pointer.border === BLACK,
+    `the pointer border is ${pointer.border}, expected ${BLACK}`,
+  );
+  check(
+    pointer.width === "4px",
+    `the pointer border is ${pointer.width} wide, expected 4px`,
+  );
+  await page.keyboard.press("p");
+
   // Turning it off has to clear the root element, or the deck keeps the
   // repaint for good.
+  await page.keyboard.press("a");
+  await waitForMenu(true);
   await page.click('[data-setting="high-contrast"]');
   const stillOn = await page.evaluate(() =>
     document.documentElement.classList.contains("revealjs-a11y-high-contrast"),
