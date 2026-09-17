@@ -41,6 +41,16 @@ function check(condition, message) {
 async function openDeck(query = "") {
   await page.goto(`${url}${query}`, { waitUntil: "load" });
   await page.waitForFunction(() => window.Reveal && window.Reveal.isReady());
+  // RevealJS rebuilds the deck into `.pdf-page` wrappers after it reports
+  // itself ready, so a walk that starts at `ready` can read a half-built DOM
+  // and find the content of a slide unreachable. Wait for the rebuild.
+  if (query.includes("print-pdf") || query.includes("view=print")) {
+    await page.waitForFunction(
+      () => document.querySelectorAll(".slides .pdf-page").length > 0,
+      null,
+      { timeout: 10000 },
+    );
+  }
 }
 
 // A wait that reports a timeout as a failed check, so the run always prints
