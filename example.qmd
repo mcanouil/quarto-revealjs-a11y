@@ -355,10 +355,12 @@ revealjs-a11y:
       url: "https://fonts.bunny.net/css?family=atkinson-hyperlegible:400,400i,700,700i"
 ```
 
-For print-pdf, add `{data-pdf-separate="true"}` to a slide heading to render one page per fragment state:
+For print-pdf, set `pdf-separate-fragments` on the format to render one page per fragment state:
 
-```{.markdown}
-## Overlaying Fragments {data-pdf-separate="true"}
+```{.yaml}
+format:
+  revealjs:
+    pdf-separate-fragments: true
 ```
 
 ## Why Accessibility Matters {background-color="#2a2a2a"}
@@ -519,7 +521,7 @@ See also [How to Use This Deck](#how-to-use-this-deck) for plugin-specific short
 
 :::
 
-## Overlaying Fragments (PDF Separate) {data-pdf-separate="true"}
+## Overlaying Fragments
 
 ::: {.fragment .fade-in-then-out}
 **First view** -- this content replaces the next.
@@ -530,8 +532,8 @@ See also [How to Use This Deck](#how-to-use-this-deck) for plugin-specific short
 :::
 
 ::: {.notes}
-This slide uses `{pdf-separate}` to generate separate pages per fragment
-state in print-pdf mode, useful for overlaying content like
+Set `pdf-separate-fragments: true` on the format to give each fragment state
+its own page in print-pdf mode, which suits overlaying content such as
 `fade-in-then-out` fragments.
 :::
 

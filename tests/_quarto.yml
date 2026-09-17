@@ -6,3 +6,5 @@ project:
     - rm -rf _extensions
   render:
     - _a11y-fixture.qmd
+    - _fragments-fixture.qmd
+    - _fragments-together-fixture.qmd

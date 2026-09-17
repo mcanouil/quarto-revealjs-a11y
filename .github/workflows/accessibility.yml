@@ -43,9 +43,19 @@ jobs:
         working-directory: tests
         run: node landmarks-check.mjs _a11y-fixture.html
 
+      - name: Run print fragment separation check
+        if: ${{ !cancelled() && steps.render.outcome == 'success' && steps.deps.outcome == 'success' }}
+        working-directory: tests
+        run: |
+          node print-fragments-check.mjs _fragments-fixture.html separated
+          node print-fragments-check.mjs _fragments-together-fixture.html together
+
       - name: Upload rendered deck
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: a11y-fixture-deck
-          path: tests/_a11y-fixture.html
+          path: |
+            tests/_a11y-fixture.html
+            tests/_fragments-fixture.html
+            tests/_fragments-together-fixture.html

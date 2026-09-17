@@ -663,12 +663,6 @@
     break-inside: avoid !important;
   }
 
-  /* Show all fragments by default (JS handles per-slide separation) */
-  .reveal .fragment {
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-
   /* Remove transitions and animations */
   .reveal *,
   .reveal *::before,

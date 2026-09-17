@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Bug Fixes
+
+- fix: Print the fragment build-up again. RevealJS separates fragments itself, and the plugin both did that work a second time and forced every fragment visible, so each page carried the whole slide.
+
+### Removals
+
+- feat: Remove the `data-pdf-separate` and `data-pdf-no-separate` slide attributes. They belonged to the duplicate separation, and RevealJS has no per-slide equivalent, so `pdf-separate-fragments` now decides for the whole deck.
+
 ### Documentation
 
 - docs: Serve the extension's social card as the Open Graph image, so a shared link shows the card rather than the first image on the page. (#31)
