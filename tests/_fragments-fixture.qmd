@@ -1,0 +1,26 @@
+---
+title: "Fragment separation fixture"
+format:
+  revealjs:
+    pdf-separate-fragments: true
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      alt-text-warnings: false
+---
+
+## Build up
+
+The slide body, which every page shows.
+
+::: {.fragment}
+The first step.
+:::
+
+::: {.fragment}
+The second step.
+:::
+
+## No fragments
+
+A slide with nothing to step through, which is exported once.

@@ -1299,84 +1299,6 @@ window.RevealjsA11y =
     }
 
     // =========================================================================
-    // Print Fragment Separation
-    // =========================================================================
-
-    function setupPrintFragments() {
-      var globalSeparate = deck.getConfig().pdfSeparateFragments;
-      var slides = Array.from(
-        revealElement.querySelectorAll(
-          ".slides > section, .slides > section > section",
-        ),
-      ).filter(function (s) {
-        return !s.querySelector(":scope > section");
-      });
-      slides.forEach(function (slide) {
-        var forceSeparate = slide.hasAttribute("data-pdf-separate");
-        var forceNoSeparate = slide.hasAttribute("data-pdf-no-separate");
-
-        var shouldSeparate =
-          (globalSeparate && !forceNoSeparate) || forceSeparate;
-
-        if (!shouldSeparate) {
-          slide.querySelectorAll(".fragment").forEach(function (f) {
-            f.classList.add("visible");
-            f.style.opacity = "1";
-            f.style.visibility = "visible";
-          });
-          return;
-        }
-
-        var fragments = Array.from(slide.querySelectorAll(".fragment"));
-        if (fragments.length === 0) return;
-
-        var indexSet = {};
-        fragments.forEach(function (f) {
-          var idx = parseInt(
-            f.getAttribute("data-fragment-index") || "0",
-            10,
-          );
-          indexSet[idx] = true;
-        });
-        var indices = Object.keys(indexSet)
-          .map(Number)
-          .sort(function (a, b) {
-            return a - b;
-          });
-
-        var parent = slide.parentNode;
-
-        // Base state: all fragments hidden
-        var baseClone = slide.cloneNode(true);
-        baseClone.querySelectorAll(".fragment").forEach(function (f) {
-          f.style.opacity = "0";
-          f.style.visibility = "hidden";
-        });
-        parent.insertBefore(baseClone, slide);
-
-        indices.forEach(function (idx) {
-          var clone = slide.cloneNode(true);
-          clone.querySelectorAll(".fragment").forEach(function (f) {
-            var fi = parseInt(
-              f.getAttribute("data-fragment-index") || "0",
-              10,
-            );
-            if (fi <= idx) {
-              f.classList.add("visible");
-              f.style.opacity = "1";
-              f.style.visibility = "visible";
-            } else {
-              f.style.opacity = "0";
-              f.style.visibility = "hidden";
-            }
-          });
-          parent.insertBefore(clone, slide);
-        });
-        slide.remove();
-      });
-    }
-
-    // =========================================================================
     // Pointer / Focus Indicator
     // =========================================================================
 
@@ -2801,7 +2723,6 @@ window.RevealjsA11y =
         }
 
         if (isPrintPdf) {
-          setupPrintFragments();
           if (!document.title) {
             const h1 = revealElement.querySelector(".slides h1");
             if (h1) document.title = h1.textContent.trim();
