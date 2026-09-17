@@ -66,33 +66,25 @@ format:
     pdf-separate-fragments: true
 ```
 
-`pdf-separate-fragments` is Quarto's option and is `false` by default, and this plugin is what acts on it in the export.
+`pdf-separate-fragments` is Quarto's option, and RevealJS is what acts on it.
+It is `false` by default.
 
 Left at `false`, a slide is exported once with every fragment visible.
 
 Set to `true`, a slide becomes one page per fragment step, preceded by a page for the slide before anything is revealed.
-A slide with three steps therefore exports as four pages.
+A slide with two steps therefore exports as three pages.
 
-::: {.callout-warning}
+The option decides for the whole deck.
+There is no per-slide setting.
 
-The pages come out identical today.
-The plugin hides the later fragments on each page with an inline style, and the print stylesheet overrides that with `opacity: 1 !important` on every fragment, so each of the four pages shows the whole slide.
+::: {.callout-note}
 
-You get the page count you asked for, and not the build-up.
+The plugin used to separate the fragments a second time, which doubled the pages and put every fragment on each of them, and it carried two slide attributes for choosing page by page.
+
+Both are gone.
+A deck that still writes `data-pdf-separate` or `data-pdf-no-separate` is writing an attribute nothing reads.
 
 :::
-
-The plugin honours a per-slide override, so you can choose page by page.
-
-```markdown
-## A slide worth stepping through {data-pdf-separate="true"}
-```
-
-`data-pdf-no-separate` does the opposite on a deck that separates by default.
-
-Both attributes are tested for presence, and the value is never read.
-So `data-pdf-separate="false"` separates the slide, exactly as `data-pdf-separate="true"` does.
-Write the attribute to turn the behaviour on, and remove it to turn the behaviour off.
 
 ## Try it
 

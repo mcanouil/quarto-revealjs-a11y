@@ -23,7 +23,8 @@ High contrast repaints the slide area in black on white.
 Headings become black, links become blue and underlined, and a visited link becomes purple.
 Inline code gets a grey panel with a border, and a code block gets a light panel with a thick black border.
 A block quote gets a thick black left rule, a table header becomes white on black, table cells get black borders, and every image gets a black outline.
-The rules cover the slides, so the deck's own controls and the plugin's panel keep their normal appearance.
+The plugin's own chrome follows: the settings panel, the transcript overlay, the pointer indicator and the page background around the slides are repainted as well.
+The deck's own controls, which belong to RevealJS rather than to the plugin, keep their usual appearance.
 
 `high-contrast: true` only sets the state the deck opens in.
 The switch in the settings panel is always there, even when the option is `false`.
