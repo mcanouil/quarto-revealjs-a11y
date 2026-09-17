@@ -22,6 +22,7 @@ npm install
 npx playwright install --with-deps chromium
 node axe-check.mjs _a11y-fixture.html
 node landmarks-check.mjs _a11y-fixture.html
+node print-fragments-check.mjs _fragments-fixture.html
 ```
 
 ## Slide landmark keyboard check
@@ -72,4 +73,4 @@ Test with VoiceOver (macOS, Safari) and NVDA (Windows, Firefox).
 
 - Export with `?print-pdf`: the menu, pointer, skip link, and status region are hidden, and user-preference overrides are reset.
 - With `transcript: {print: true}`, the transcript appears below each slide.
-- `{data-pdf-separate="true"}` produces one page per fragment state.
+- With `pdf-separate-fragments: true` on the format, each fragment state is its own page, preceded by the slide before anything is revealed.
