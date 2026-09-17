@@ -17,7 +17,7 @@ format:
       - a11y
 ```
 
-Enabling the plugin alone gives the skip link, the focus indicators, the zoomable viewport, reduced-motion support, the font and spacing controls, underlined links, slide landmarks, the announcements, the transcript, the visual slide change cue, and the settings menu on <kbd>A</kbd>.
+Enabling the plugin alone gives the skip link, the focus indicators, the zoomable viewport, reduced-motion support, the font and spacing controls, underlined links, slide landmarks, the announcements, the transcript, the visual slide change cue, the screen-reader fixes for the bundled menu, and the settings menu on <kbd>A</kbd>.
 
 The pointer indicator, high contrast, the audio cue, and the alt text warnings are the four that start off.
 
@@ -27,7 +27,7 @@ The pointer indicator, high contrast, the audio cue, and the alt text warnings a
 | --- | --- |
 | [Text and fonts](examples/text-and-fonts.qmd) | `font-size-controls`, `font-size-min`, `font-size-max`, `font-size-step`, `font-selection`, `font-families`, `text-spacing` |
 | [Contrast and zoom](examples/contrast-and-zoom.qmd) | `high-contrast`, `viewport-zoom`, `link-highlight` |
-| [Announcements and cues](examples/announcements-and-cues.qmd) | `announce-slide-numbers`, `announce-fragments`, `announce-language-changes`, `slide-change-cue`, `reduced-motion` |
+| [Announcements, cues and motion](examples/announcements-and-cues.qmd) | `announce-slide-numbers`, `announce-fragments`, `announce-language-changes`, `slide-change-cue`, `reduced-motion` |
 | [Landmarks and menus](examples/landmarks-and-menus.qmd) | `slide-landmarks`, `skip-navigation`, `focus-indicators`, `menu`, `slide-menu-a11y` |
 | [Transcript and pointer](examples/transcript-and-pointer.qmd) | `transcript`, `pointer-indicator` |
 | [Authoring and print](examples/authoring-and-print.qmd) | `alt-text-warnings`, and what reaches `print-pdf` output |

@@ -1,6 +1,6 @@
 ---
-title: "Announcements and cues"
-subtitle: "What a screen reader says, and what the room sees."
+title: "Announcements, cues and motion"
+subtitle: "What a screen reader says, what the room sees, and what moves."
 description: "The three announcement options, the visual and audio slide change cues, and how reduced motion is handled."
 ---
 

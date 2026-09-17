@@ -29,7 +29,6 @@ A reader therefore meets the same limits from the keyboard and from the panel.
 <kbd>0</kbd> is the exception.
 It returns the deck to 100%, whatever the bounds say.
 
-A step below 1 is raised to 1.
 The size is applied to the slide container, so the whole deck scales together.
 
 ## No size controls at all
@@ -56,9 +55,9 @@ revealjs-a11y:
       value: "system-ui, sans-serif"
 ```
 
-`font-families` replaces the built-in list rather than adding to it.
-Each entry needs a `name`, which the panel shows, and a `value`, which is a CSS font stack.
-`url` points at a stylesheet, which the plugin loads the first time a reader picks that entry.
+[Options](../reference.qmd#options) describes what a `font-families` entry holds and how the list is treated.
+
+An entry carrying a `url` has its stylesheet fetched when a reader picks it, and again on a later visit when that entry is the stored choice.
 
 An entry with an empty `value` removes the override and gives the theme's own font back.
 Put one first, as above, or your readers have no way back to the theme.
@@ -83,7 +82,7 @@ A value a reader saved on an earlier visit is then ignored as well.
 
 ## What a reader keeps
 
-The font size, the font family, the line height, the letter spacing and the word spacing are all stored in the browser.
+Every control on this page stores what the reader chose.
 See [What persists](../reference.qmd#what-persists) for the full list.
 
 None of it reaches `print-pdf` output.

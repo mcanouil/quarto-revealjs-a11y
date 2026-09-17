@@ -38,23 +38,24 @@ The check only looks at the slide you are on, and it runs again on each slide ch
 An image on a slide you never open is never checked.
 
 Take the option out before you show the deck or export it.
-It stays on in `print-pdf` output, so the red outlines can end up in the file you hand over.
+The check is not switched off in `print-pdf` output, so a red outline can reach the file you hand over.
+
+It reaches at most one slide there.
+The check reads the current slide, and an export has no slide changes, so only the slide the deck opens on is ever examined.
+That is enough to spoil a handed-over file, and not enough to audit a deck.
 
 ## What reaches print-pdf
 
 Most of the plugin is a live thing.
 It needs a browser, a reader and a keyboard, and none of that exists in an exported PDF.
 
-These parts still run in `print-pdf` output.
+The [Reference](../reference.qmd#printing) lists what runs in `print-pdf` and what is skipped.
+Two entries on that list are worth a word here, because they are easy to get wrong.
 
-- High contrast, from the document option, ignoring whatever the reader stored.
-- Underlined links.
-- The slide labels from `slide-landmarks`, although no slide is isolated.
-- The alt text warnings.
-- The printed transcript, when you ask for it.
-- The fragment handling described below.
+High contrast takes the document option and ignores whatever the reader stored, so an export matches the document.
+Link highlighting does not.
+It reads the stored reader choice in an export exactly as it does in a live deck, so a reader who switched underlines off exports a PDF without them, whatever the document asks for.
 
-Everything else is skipped: the skip link, the focus indicators, the zoom rewrite, reduced motion, the font and spacing controls, all three announcements, both slide change cues, the pointer indicator, the settings panel and the slide menu patch.
 The stylesheet also hides the panel, the skip link, the cue bar, the live region, the font picker, the pointer and the transcript overlay in any print, and it drops the reader's font size and spacing overrides.
 
 ## Fragments in the export
@@ -65,9 +66,12 @@ format:
     pdf-separate-fragments: true
 ```
 
-`pdf-separate-fragments` belongs to Quarto, not to this plugin, and it is `false` by default.
+`pdf-separate-fragments` is Quarto's option and is `false` by default, and this plugin is what acts on it in the export.
+
 Left at `false`, a slide is exported once with every fragment visible.
-Set to `true`, each step of a slide becomes its own page.
+
+Set to `true`, a slide becomes one page per fragment step, preceded by a page with every fragment hidden.
+A slide with three steps therefore exports as four pages, and the first shows the slide before anything is revealed.
 
 The plugin honours a per-slide override, so you can choose page by page.
 
@@ -75,7 +79,11 @@ The plugin honours a per-slide override, so you can choose page by page.
 ## A slide worth stepping through {data-pdf-separate="true"}
 ```
 
-`data-pdf-no-separate="true"` does the opposite on a deck that separates by default.
+`data-pdf-no-separate` does the opposite on a deck that separates by default.
+
+Both attributes are tested for presence, and the value is never read.
+So `data-pdf-separate="false"` separates the slide, exactly as `data-pdf-separate="true"` does.
+Write the attribute to turn the behaviour on, and remove it to turn the behaviour off.
 
 ## Try it
 

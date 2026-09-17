@@ -31,8 +31,17 @@ The plugin only fills in a `role` or an `aria-label` that is not already there.
 
 An attribute you put on a heading lands on the slide, which is where the plugin looks.
 
-The option does a second, larger job at the same time: it keeps the content of every other slide out of the tab order.
+The option does three jobs, and the label is the smallest of them.
+
+It keeps the content of every other slide out of the tab order.
 [Options](../reference.qmd#options) describes that behaviour and its browser support.
+
+It marks the current slide with `aria-current="step"`, so assistive technology can say which slide is the live one.
+
+It also puts the keyboard focus back on the new slide after a slide change, when the focus was lost with the slide that left.
+
+So `slide-landmarks: false` takes away the current-slide marker and the focus recovery as well as the labels.
+Turn it off only when something else in the deck does those jobs.
 
 The labels are written in `print-pdf` output as well, although no slide is isolated there.
 

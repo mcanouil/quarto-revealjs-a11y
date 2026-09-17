@@ -71,7 +71,7 @@ website:
           - href: examples/contrast-and-zoom.qmd
             text: "Contrast and zoom"
           - href: examples/announcements-and-cues.qmd
-            text: "Announcements and cues"
+            text: "Announcements, cues and motion"
           - href: examples/landmarks-and-menus.qmd
             text: "Landmarks and menus"
           - href: examples/transcript-and-pointer.qmd

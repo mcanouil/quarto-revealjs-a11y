@@ -28,12 +28,11 @@ The rules cover the slides, so the deck's own controls and the plugin's panel ke
 `high-contrast: true` only sets the state the deck opens in.
 The switch in the settings panel is always there, even when the option is `false`.
 
-A reader who uses that switch overrules the option for good.
-The plugin stores the choice, and the stored choice wins on every later visit to the same deck in the same browser.
+A reader who uses that switch overrules the option.
+The plugin stores the choice, and the stored choice wins on every later visit to the same deck in the same browser, until the reader presses **Reset all** in the panel.
 So `high-contrast: true` is the opening position, not a lock.
 
-High contrast is one of the few parts of the plugin that reaches `print-pdf` output.
-The stored choice is ignored there, so what the document asks for is what gets exported.
+High contrast reaches `print-pdf` output, and the stored choice is ignored there, so what the document asks for is what gets exported.
 
 ## Zooming
 
@@ -65,9 +64,18 @@ The underline sits 3 px below the text, and it thickens when the link is hovered
 The rule only covers links on a slide.
 A link inside the settings panel or the transcript keeps its own style.
 
-`link-highlight` follows the same rule as `high-contrast`.
-The option sets the opening state, the panel has a switch, and a reader who uses the switch overrules the option from then on.
-It also reaches `print-pdf` output.
+`link-highlight` works like `high-contrast` in the live deck.
+The option sets the opening state, the panel has a switch, and a reader who uses the switch overrules the option until they press **Reset all**.
+
+::: {.callout-warning}
+
+The two options part company in an export.
+
+High contrast ignores the stored choice in `print-pdf`, so the document decides.
+`link-highlight` does not: it reads the stored choice there as well.
+So a reader who switched underlines off in the panel exports a PDF with no underlines, even from a document that sets `link-highlight: true`, and a reader who switched them on exports underlines from a document that sets `false`.
+
+:::
 
 ## Try it
 
