@@ -81,10 +81,30 @@ revealjs-a11y:
     print: true
 ```
 
-puts the transcript below each slide in `print-pdf` output, which is the only part of the plugin that outlives the browser.
+puts the transcript below each slide in `print-pdf` output.
+
+The transcript is not the only part that reaches the exported file.
+These run in `print-pdf`:
+
+- High contrast, from the document option.
+  The stored reader choice is ignored there.
+- Link highlighting.
+  The stored reader choice still applies, unlike high contrast.
+- The slide landmarks, which label each slide.
+- The alt text warnings, on the current slide only.
+- The transcript, when `transcript` is enabled and either `transcript.print` or the reader's stored **Print transcript** choice is on.
+  With `transcript: false` the plugin generates nothing, whatever the reader stored.
+- The fragment pages, when `pdf-separate-fragments` is on.
+  RevealJS builds those, and the plugin leaves them alone.
+
+Everything else is skipped: the reader controls, the settings panel, the menus, the announcements, the cues, the pointer indicator, the skip link, the focus indicators, the reduced-motion handling, and the viewport rewrite.
+
+A `.transcript` div written by hand is shown in `print-pdf` by the stylesheet alone.
+It needs no option, and it prints even when `transcript` is off.
 
 ## Limitations
 
 - RevealJS only.
-- Everything but the printed transcript needs JavaScript.
+- A hand-written `.transcript` div is the only part the stylesheet shows on its own.
+  The generated printed transcript is written by the plugin at export time, so it needs the plugin to run.
 - The plugin patches the bundled menu plugin for screen readers; a deck using a different menu keeps its own behaviour.

@@ -1,0 +1,105 @@
+---
+title: "Transcript and pointer"
+subtitle: "The two tools in the panel."
+description: "The transcript overlay and its printed form, and the pointer indicator that follows the cursor and the keyboard focus."
+---
+
+These two options fill the Tools group of the settings panel.
+With both off, the group is not built at all.
+See [Options](../reference.qmd#options) for the defaults.
+
+## The transcript overlay
+
+```yaml
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      transcript: true
+```
+
+<kbd>T</kbd> opens a full-page document that holds the whole deck as running text, one entry per slide.
+It traps <kbd>Tab</kbd>, closes on <kbd>Escape</kbd>, and gives the focus back to where the reader was.
+
+Each entry takes its title from the slide's first heading, or "Slide 7" when there is none.
+The body is what is left of the slide after the speaker notes, anything marked `aria-hidden`, and the heading itself are removed.
+A slide with nothing left over reads "(No content on this slide.)".
+
+## Writing the transcript yourself
+
+```markdown
+## A chart nobody can read aloud
+
+![](revenue.png){fig-alt="Revenue by quarter."}
+
+::: {.transcript}
+
+Revenue rose each quarter, from 1.2 million in the first to 2.8 million in the fourth.
+
+:::
+```
+
+A `.transcript` div placed directly on a slide replaces the generated text for that slide.
+The div is hidden on the slide in the live deck.
+Use it for a slide whose meaning is in a figure, a video or a layout rather than in its words.
+
+::: {.callout-note}
+
+A div you write by hand prints whatever the options say.
+The stylesheet shows any `.transcript` div under a slide in `print-pdf` output, and it asks no question of the configuration, so the div prints with `transcript: false` as readily as with `transcript: true`.
+
+The `print` option decides only whether the plugin generates a transcript for the slides that have none.
+
+:::
+
+## The transcript in print
+
+```yaml
+revealjs-a11y:
+  transcript:
+    print: true
+```
+
+With `print: true`, the plugin writes the transcript of each slide below that slide in `print-pdf` output.
+See [Printing](../reference.qmd#printing) for everything else that reaches an export.
+
+`transcript: true` cannot print.
+The short form always sets `print` to `false`, so the object form above is the only way to ask the plugin for it in the document.
+
+A reader can also switch it on from the panel with **Print transcript**, and that choice is stored and wins over `print: false`.
+It wins until the reader presses **Reset All**, which clears every stored choice and applies the document options again.
+
+## The pointer indicator
+
+```yaml
+revealjs-a11y:
+  pointer-indicator:
+    size: 120
+    colour: "rgba(178, 34, 34, 0.4)"
+    shortcut: p
+```
+
+The pointer indicator is a large translucent circle with a blue border.
+It is off unless you ask for it, and <kbd>P</kbd> toggles it once it is enabled.
+
+The name understates it.
+It follows the mouse, and it also jumps to the centre of whatever takes the keyboard focus.
+So it marks the reader's place whether they are pointing or tabbing.
+
+`pointer-indicator: true` gives the defaults.
+The object form above sets the three keys, and any object turns the feature on unless you write `enabled: false`.
+
+The [Reference](../reference.qmd#options) gives the accepted range for `size`, what happens to a value outside it, and the spellings of the colour key.
+
+The panel adds a switch, a size slider and a colour list once the feature is on.
+The slider covers 20 px to 200 px in steps of 10, which is narrower than the range the option accepts.
+The colour list offers four fixed choices.
+
+The pointer is not built for `print-pdf` output.
+
+## Try it
+
+The [preview deck](../preview.html) sets `transcript: true` and `pointer-indicator: true`.
+Press <kbd>T</kbd> for the transcript, then <kbd>P</kbd> and move the mouse.
+Press <kbd>Tab</kbd> with the pointer on to watch it follow the focus instead.

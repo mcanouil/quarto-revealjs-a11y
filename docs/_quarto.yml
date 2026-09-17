@@ -63,8 +63,21 @@ website:
         text: "Home"
       - href: reference.qmd
         text: "Reference"
-      - href: examples.qmd
+      - section: examples.qmd
         text: "Examples"
+        contents:
+          - href: examples/text-and-fonts.qmd
+            text: "Text and fonts"
+          - href: examples/contrast-and-zoom.qmd
+            text: "Contrast and zoom"
+          - href: examples/announcements-and-cues.qmd
+            text: "Announcements, cues and motion"
+          - href: examples/landmarks-and-menus.qmd
+            text: "Landmarks and menus"
+          - href: examples/transcript-and-pointer.qmd
+            text: "Transcript and pointer"
+          - href: examples/authoring-and-print.qmd
+            text: "Authoring and print"
       - text: "---"
       - href: changelog.qmd
         text: "Changelog"

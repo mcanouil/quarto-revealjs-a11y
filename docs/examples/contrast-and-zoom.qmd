@@ -1,0 +1,85 @@
+---
+title: "Contrast and zoom"
+subtitle: "Making the slides readable."
+description: "High contrast, a zoomable viewport, and underlined links: the three options that change how a deck looks before a reader touches anything."
+---
+
+These three options change what the reader sees on arrival.
+Two of them can be overruled by the reader, and the plugin remembers that choice.
+See [Options](../reference.qmd#options) for the defaults.
+
+## Starting in high contrast
+
+```yaml
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      high-contrast: true
+```
+
+High contrast repaints the slide area in black on white.
+Headings become black, links become blue and underlined, and a visited link becomes purple.
+Inline code gets a grey panel with a border, and a code block gets a light panel with a thick black border.
+A block quote gets a thick black left rule, a table header becomes white on black, table cells get black borders, and every image gets a black outline.
+The plugin's own chrome follows: the settings panel, the transcript overlay, the pointer indicator and the page background around the slides are repainted as well.
+The deck's own controls, which belong to RevealJS rather than to the plugin, keep their usual appearance.
+
+`high-contrast: true` only sets the state the deck opens in.
+The switch in the settings panel is always there, even when the option is `false`.
+
+A reader who uses that switch overrules the option.
+The plugin stores the choice, and the stored choice wins on every later visit to the same deck in the same browser, until the reader presses **Reset All** in the panel.
+So `high-contrast: true` is the opening position, not a lock.
+
+High contrast reaches `print-pdf` output, and the stored choice is ignored there, so what the document asks for is what gets exported.
+
+## Zooming
+
+```yaml
+revealjs-a11y:
+  viewport-zoom: true
+```
+
+A RevealJS deck ships with a viewport tag that pins the scale and forbids user scaling, which fails WCAG 1.4.4.
+This option rewrites that tag so a reader can pinch and zoom on a phone or a tablet.
+
+The rewrite replaces the whole tag rather than editing it.
+A Quarto deck asks for `width=device-width`, an initial scale of 1, a maximum scale of 1, no user scaling, and `minimal-ui`.
+The plugin keeps the width and the initial scale, and drops the other three.
+Losing `minimal-ui` is a side effect, not the point of the option.
+
+The rewrite does nothing when the page carries no viewport tag, and it is skipped in `print-pdf` output.
+
+## Underlined links
+
+```yaml
+revealjs-a11y:
+  link-highlight: true
+```
+
+This underlines every link on a slide, so colour is not the only thing that marks it.
+The underline sits 3 px below the text, and it thickens when the link is hovered or focused.
+
+The rule only covers links on a slide.
+A link inside the settings panel or the transcript keeps its own style.
+
+`link-highlight` works like `high-contrast` in the live deck.
+The option sets the opening state, the panel has a switch, and a reader who uses the switch overrules the option until they press **Reset All**.
+
+::: {.callout-warning}
+
+The two options part company in an export.
+
+High contrast ignores the stored choice in `print-pdf`, so the document decides.
+`link-highlight` does not: it reads the stored choice there as well.
+So a reader who switched underlines off in the panel exports a PDF with no underlines, even from a document that sets `link-highlight: true`, and a reader who switched them on exports underlines from a document that sets `false`.
+
+:::
+
+## Try it
+
+Open the [preview deck](../preview.html) and press <kbd>A</kbd>.
+**High contrast** and **Underline links** are the first two rows of the panel.
+The third, **Colour overlay**, has no document option: it exists only in the panel.

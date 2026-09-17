@@ -1,0 +1,131 @@
+---
+title: "Landmarks and menus"
+subtitle: "Structure, focus and the two menus."
+description: "Slide landmarks, the skip link, focus indicators, the accessibility settings panel, and the patch applied to the bundled slide menu."
+---
+
+These five options decide what a keyboard reader can reach, and in what order.
+See [Options](../reference.qmd#options) for the defaults, and [Keyboard shortcuts](../reference.qmd#keyboard-shortcuts) for the keys.
+
+## Landmarks on each slide
+
+```yaml
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      slide-landmarks: true
+```
+
+Every slide becomes a labelled region.
+The label is the slide's first heading, or "Slide 4" when the slide has none.
+A screen reader can then list the slides and jump between them.
+
+A label you write yourself wins.
+The plugin only fills in a `role` or an `aria-label` that is not already there.
+
+```markdown
+## Results {aria-label="Results for the second cohort"}
+```
+
+An attribute you put on a heading lands on the slide, which is where the plugin looks.
+
+The option does three jobs, and the label is the smallest of them.
+
+It keeps the content of every other slide out of the tab order.
+[Options](../reference.qmd#options) describes that behaviour and its browser support.
+
+It marks the current slide with `aria-current="step"`, so assistive technology can say which slide is the live one.
+
+It also puts the keyboard focus back on the new slide after a slide change, when the focus was lost with the slide that left.
+
+So `slide-landmarks: false` takes away the current-slide marker and the focus recovery as well as the labels.
+Turn it off only when something else in the deck does those jobs.
+
+The labels are written in `print-pdf` output as well, although no slide is isolated there.
+
+## The skip link
+
+```yaml
+revealjs-a11y:
+  skip-navigation: true
+```
+
+The first <kbd>Tab</kbd> on a fresh deck reveals a black bar at the top of the window reading "Skip to slide content".
+Activating it moves the focus onto the current slide.
+Without it, a keyboard reader tabs through the deck controls before reaching anything they came for.
+
+The link is hidden until it takes the focus, and it is not built for `print-pdf` output.
+
+## Focus indicators
+
+```yaml
+revealjs-a11y:
+  focus-indicators: true
+```
+
+This draws a thick blue outline around whatever holds the focus, so the reader can see where they are.
+A link also gets an underline, and a button, an input, a select or a text area also gets a matching ring.
+
+The rules cover the deck only.
+The settings panel, the transcript and the font picker sit outside it and carry their own focus styles, so turning this option off does not leave them unmarked.
+
+## The settings panel
+
+```yaml
+revealjs-a11y:
+  menu:
+    enabled: true
+    shortcut: y
+    position: left
+```
+
+`menu: true` gives the defaults, and `menu: false` removes the panel.
+
+Pick a letter RevealJS has not taken.
+The bundled plugins Quarto ships already bind several, and <kbd>S</kbd> opens the speaker notes view, so a deck that rebinds the panel to `s` loses one of the two.
+The object form sets the three keys, and any key you leave out keeps its default.
+
+The panel is a modal dialogue.
+It traps <kbd>Tab</kbd>, closes on <kbd>Escape</kbd>, suspends the deck's own keyboard while it is open, and gives the focus back when it closes.
+It is out of the tab order while closed, so <kbd>Tab</kbd> on a slide goes to the slide content.
+
+`position` takes `left` or `right`.
+Any other value gives the right-hand panel, with no error.
+`shortcut` is bound on its first character, so give it a single letter.
+
+The panel builds its groups from the options that are on.
+Display is always there, holding high contrast, underlined links and the colour overlay.
+Typography appears only if one of `font-size-controls`, `font-selection` or `text-spacing` is on.
+Motion and Cues appears only if a slide change cue is on.
+Tools appears only if the transcript or the pointer indicator is on.
+A deck with everything else turned off therefore gets a panel with one group and the **Reset All** button.
+
+## The bundled slide menu
+
+```yaml
+revealjs-a11y:
+  slide-menu-a11y: true
+```
+
+This is a different menu.
+Quarto ships the RevealJS slide menu, the hamburger in the bottom corner that lists the slides, and this option repairs it for screen readers.
+
+It labels the menu and its toggle button, turns the toolbar into a tab list, turns the slide list into a menu with named items, and marks the tool links as buttons.
+It also takes the whole menu out of the tab order while it is closed.
+Opening the menu moves the focus to the first item, and closing it returns the focus to the current slide.
+
+Two things to know.
+The patch waits up to five seconds for the menu to appear and then stops waiting.
+The patch is skipped in `print-pdf` output.
+
+Take care with the name `menu`.
+`menu` under `revealjs` is the Quarto slide menu, and `menu` under `revealjs-a11y` is the accessibility settings panel.
+Turning the Quarto one off leaves `slide-menu-a11y` with nothing to patch.
+
+## Try it
+
+The [preview deck](../preview.html) has both menus.
+Press <kbd>A</kbd> for the settings panel, and use the hamburger in the corner for the slide menu.
+Press <kbd>Tab</kbd> from a fresh load to see the skip link.

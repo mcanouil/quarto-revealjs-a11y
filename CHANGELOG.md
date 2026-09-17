@@ -14,6 +14,7 @@
 ### Documentation
 
 - docs: Serve the extension's social card as the Open Graph image, so a shared link shows the card rather than the first image on the page. (#31)
+- docs: Split the examples into one page per topic, so every option has a worked configuration and a description of what it does.
 
 ## 0.2.3 (2026-08-24)
 

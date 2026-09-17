@@ -1,0 +1,94 @@
+---
+title: "Text and fonts"
+subtitle: "Size, typeface and spacing."
+description: "How a reader resizes the text, changes the typeface, and opens up the spacing, and how an author sets the bounds."
+---
+
+Three options build the Typography group of the settings panel: `font-size-controls`, `font-selection` and `text-spacing`.
+The panel omits the whole group when all three are off.
+See [Options](../reference.qmd#options) for the defaults.
+
+## Bounds for the font size
+
+```yaml
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      font-size-min: 75
+      font-size-max: 150
+      font-size-step: 5
+```
+
+The two bounds are percentages of the size the theme sets, and the step is the amount one key press adds or removes.
+The three values do two jobs at once.
+They bound <kbd>+</kbd> and <kbd>-</kbd>, and they become the minimum, the maximum and the increment of the font size slider in the settings panel.
+A reader therefore meets the same limits from the keyboard and from the panel.
+
+<kbd>0</kbd> is the exception.
+It returns the deck to 100%, whatever the bounds say.
+
+The size is applied to the slide container, so the whole deck scales together.
+
+## No size controls at all
+
+```yaml
+revealjs-a11y:
+  font-size-controls: false
+```
+
+This removes <kbd>+</kbd>, <kbd>-</kbd> and <kbd>0</kbd>, and the slider with them.
+`font-size-min`, `font-size-max` and `font-size-step` then have nothing to act on.
+
+## Your own font list
+
+```yaml
+revealjs-a11y:
+  font-families:
+    - name: "Theme default"
+      value: ""
+    - name: "Atkinson Hyperlegible"
+      value: "'Atkinson Hyperlegible', sans-serif"
+      url: "https://fonts.bunny.net/css?family=atkinson-hyperlegible:400,400i,700,700i"
+    - name: "System"
+      value: "system-ui, sans-serif"
+```
+
+[Options](../reference.qmd#options) describes what a `font-families` entry holds and how the list is treated.
+
+An entry carrying a `url` has its stylesheet fetched when a reader picks it, and again on a later visit when that entry is the stored choice.
+
+An entry with an empty `value` removes the override and gives the theme's own font back.
+Put one first, as above, or the font list offers no way back to the theme and only **Reset All** restores it.
+
+On Chrome and Edge the panel also offers a **System fonts…** button, which lists the fonts installed on the reader's machine.
+Other browsers do not show the button.
+
+## Spacing
+
+```yaml
+revealjs-a11y:
+  text-spacing: true
+```
+
+`text-spacing` adds three sliders to the panel, and no keyboard shortcut.
+Line height goes up to 4.0.
+Letter spacing adds up to 10 px, and word spacing adds up to 25 px.
+Each slider has a first position labelled **Default**, which removes the override and gives the theme's own value back.
+
+Setting `text-spacing: false` removes all three.
+A value a reader saved on an earlier visit is then ignored as well.
+
+## What a reader keeps
+
+Every control on this page stores what the reader chose.
+See [What persists](../reference.qmd#what-persists) for the full list.
+
+None of it reaches `print-pdf` output.
+The plugin does not build the size, family or spacing controls for that output, and the print stylesheet drops the size override as well.
+
+## Try it
+
+The [preview deck](../preview.html) enables `font-size-controls`, `font-selection` and `text-spacing`.
+Press <kbd>A</kbd> for the panel, or <kbd>+</kbd>, <kbd>-</kbd> and <kbd>0</kbd> for the size.
