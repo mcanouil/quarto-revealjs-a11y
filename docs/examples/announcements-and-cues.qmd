@@ -1,0 +1,107 @@
+---
+title: "Announcements and cues"
+subtitle: "What a screen reader says, and what the room sees."
+description: "The three announcement options, the visual and audio slide change cues, and how reduced motion is handled."
+---
+
+A slide change is silent to a screen reader unless something announces it.
+The plugin keeps one hidden live region and sends every message through it.
+See [Options](../reference.qmd#options) for the defaults.
+
+## Slide numbers and titles
+
+```yaml
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      announce-slide-numbers: true
+```
+
+Each slide change produces a message of the form "Slide 3 of 24".
+A sub-slide in a vertical stack adds ", sub-slide 2".
+A slide with a heading adds ": " and the heading text.
+
+## Fragments
+
+```yaml
+revealjs-a11y:
+  announce-fragments: false
+```
+
+With `announce-fragments` on, every fragment is spoken as it appears.
+Stepping backwards speaks too, as "Hidden: " and the same text.
+
+That is helpful on a slide with two or three fragments.
+It is noise on a slide that steps through a long list, because each step is one more message.
+Turn it off when your deck is built that way.
+
+## Language changes
+
+```yaml
+revealjs-a11y:
+  announce-language-changes: true
+```
+
+The plugin reads the `lang` attribute of each slide, or of the nearest element above it that has one, and falls back to the language of the document.
+It announces only when that value differs from the previous slide.
+A deck written in one language therefore never produces one of these messages.
+
+The language name is resolved into the reader's own language, and it falls back to the raw tag when the browser cannot resolve it.
+So a slide marked `lang="fr"` is announced as "Language: French" to an English reader.
+
+## One live region for everything
+
+The three options above share a single hidden live region, and so does every control in the settings panel.
+Turning all three off does not silence the deck.
+A reader who changes the font size still hears "Font size: 120%", and a reader who turns high contrast on still hears it confirmed.
+
+Messages are queued and released one every 150 ms, and a message identical to the one just queued is dropped.
+Holding an arrow key down therefore does not flood the reader.
+
+None of the three announcement options runs in `print-pdf` output.
+
+## Slide change cues
+
+```yaml
+revealjs-a11y:
+  slide-change-cue:
+    visual: true
+    audio: true
+```
+
+The visual cue is a thin blue bar across the top of the window, which sweeps from left to right and fades in under half a second.
+The audio cue is a short two-note tone.
+Browsers block sound until the reader interacts with the page, so the first click or key press arms it.
+
+`slide-change-cue: true` enables both, and `false` disables both.
+The object form, shown above, sets them separately.
+
+The panel only offers a switch for a cue the document enabled.
+With the default `audio: false`, there is no audio switch at all, and a reader cannot turn the tone on.
+Enable it in the document if you want the reader to have the choice.
+
+Both cues are skipped in `print-pdf` output.
+
+## Reduced motion
+
+```yaml
+revealjs-a11y:
+  reduced-motion: true
+```
+
+This option does not remove motion.
+It watches the reader's `prefers-reduced-motion` setting and reacts to it.
+
+When the reader asks for reduced motion, the plugin sets the deck transition and the background transition to `none`, and it stops the transitions on slides, fragments, backgrounds and the progress bar.
+When the reader turns the setting off again, the plugin restores the transitions the deck started with.
+The change is applied live, without a reload.
+
+Setting `reduced-motion: false` keeps your transitions for every reader, including those who asked for fewer.
+It does not make the plugin's own panel and controls animate for such a reader, because those follow `prefers-reduced-motion` from the stylesheet and ignore the option.
+
+## Try it
+
+The [preview deck](../preview.html) leaves all five at their defaults, so the announcements and the visual cue are on and the tone is off.
+Move a slide and watch the top of the window.

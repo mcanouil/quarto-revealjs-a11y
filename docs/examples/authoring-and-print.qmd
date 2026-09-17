@@ -1,0 +1,83 @@
+---
+title: "Authoring and print"
+subtitle: "Checks while you write, and what survives an export."
+description: "The alt text warnings you turn on while drafting, and the short list of plugin features that still work in print-pdf output."
+---
+
+Two of the plugin's jobs happen away from a live audience.
+One helps you while you write the deck.
+The other decides what is left when you export it.
+
+## Checking alt text while you write
+
+```yaml
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      alt-text-warnings: true
+```
+
+An image with no `alt` attribute gets a thick red dashed outline and a red "Missing alt text" label below it.
+The label is hidden from screen readers, because it is there for you.
+
+The check tells three cases apart.
+
+- No `alt` attribute at all is treated as an oversight and is flagged.
+- `alt=""` is treated as a deliberate statement that the image is decorative, and is not flagged.
+- `alt` with text is correct, and is not flagged.
+
+In Quarto, write the text with `fig-alt` and it becomes the `alt` attribute.
+
+```markdown
+![](architecture.png){fig-alt="Three services behind one gateway."}
+```
+
+The check only looks at the slide you are on, and it runs again on each slide change.
+An image on a slide you never open is never checked.
+
+Take the option out before you show the deck or export it.
+It stays on in `print-pdf` output, so the red outlines can end up in the file you hand over.
+
+## What reaches print-pdf
+
+Most of the plugin is a live thing.
+It needs a browser, a reader and a keyboard, and none of that exists in an exported PDF.
+
+These parts still run in `print-pdf` output.
+
+- High contrast, from the document option, ignoring whatever the reader stored.
+- Underlined links.
+- The slide labels from `slide-landmarks`, although no slide is isolated.
+- The alt text warnings.
+- The printed transcript, when you ask for it.
+- The fragment handling described below.
+
+Everything else is skipped: the skip link, the focus indicators, the zoom rewrite, reduced motion, the font and spacing controls, all three announcements, both slide change cues, the pointer indicator, the settings panel and the slide menu patch.
+The stylesheet also hides the panel, the skip link, the cue bar, the live region, the font picker, the pointer and the transcript overlay in any print, and it drops the reader's font size and spacing overrides.
+
+## Fragments in the export
+
+```yaml
+format:
+  revealjs:
+    pdf-separate-fragments: true
+```
+
+`pdf-separate-fragments` belongs to Quarto, not to this plugin, and it is `false` by default.
+Left at `false`, a slide is exported once with every fragment visible.
+Set to `true`, each step of a slide becomes its own page.
+
+The plugin honours a per-slide override, so you can choose page by page.
+
+```markdown
+## A slide worth stepping through {data-pdf-separate="true"}
+```
+
+`data-pdf-no-separate="true"` does the opposite on a deck that separates by default.
+
+## Try it
+
+`print-pdf` output is a browser mode rather than a build step.
+Open the [preview deck](../preview.html), add `?print-pdf` to the address, and print the page from the browser.
