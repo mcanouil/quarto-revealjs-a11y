@@ -60,7 +60,7 @@ revealjs-a11y:
 An entry carrying a `url` has its stylesheet fetched when a reader picks it, and again on a later visit when that entry is the stored choice.
 
 An entry with an empty `value` removes the override and gives the theme's own font back.
-Put one first, as above, or your readers have no way back to the theme.
+Put one first, as above, or the font list offers no way back to the theme and only **Reset All** restores it.
 
 On Chrome and Edge the panel also offers a **System fonts…** button, which lists the fonts installed on the reader's machine.
 Other browsers do not show the button.

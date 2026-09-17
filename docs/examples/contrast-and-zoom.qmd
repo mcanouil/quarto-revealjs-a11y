@@ -29,7 +29,7 @@ The rules cover the slides, so the deck's own controls and the plugin's panel ke
 The switch in the settings panel is always there, even when the option is `false`.
 
 A reader who uses that switch overrules the option.
-The plugin stores the choice, and the stored choice wins on every later visit to the same deck in the same browser, until the reader presses **Reset all** in the panel.
+The plugin stores the choice, and the stored choice wins on every later visit to the same deck in the same browser, until the reader presses **Reset All** in the panel.
 So `high-contrast: true` is the opening position, not a lock.
 
 High contrast reaches `print-pdf` output, and the stored choice is ignored there, so what the document asks for is what gets exported.
@@ -65,7 +65,7 @@ The rule only covers links on a slide.
 A link inside the settings panel or the transcript keeps its own style.
 
 `link-highlight` works like `high-contrast` in the live deck.
-The option sets the opening state, the panel has a switch, and a reader who uses the switch overrules the option until they press **Reset all**.
+The option sets the opening state, the panel has a switch, and a reader who uses the switch overrules the option until they press **Reset All**.
 
 ::: {.callout-warning}
 

@@ -68,7 +68,7 @@ See [Printing](../reference.qmd#printing) for everything else that reaches an ex
 The short form always sets `print` to `false`, so the object form above is the only way to ask the plugin for it in the document.
 
 A reader can also switch it on from the panel with **Print transcript**, and that choice is stored and wins over `print: false`.
-It wins until the reader presses **Reset all**, which clears every stored choice and applies the document options again.
+It wins until the reader presses **Reset All**, which clears every stored choice and applies the document options again.
 
 ## The pointer indicator
 
