@@ -1,0 +1,14 @@
+---
+title: "High contrast fixture"
+format:
+  revealjs:
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      high-contrast: true
+      alt-text-warnings: false
+---
+
+## A slide
+
+A paragraph, and a [link](https://example.com).

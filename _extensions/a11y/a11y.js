@@ -420,8 +420,34 @@ window.RevealjsA11y =
     // High Contrast
     // =========================================================================
 
+    // The high-contrast class sits on the root element rather than on the deck.
+    // The settings panel, the transcript overlay and the pointer are appended
+    // to `document.body`, which is the deck's parent, so a rule rooted at the
+    // deck can never reach them, and neither can one aimed at
+    // `.reveal-viewport`, which RevealJS also puts on `document.body`. The root
+    // element is an ancestor of all four.
+    const HIGH_CONTRAST_CLASS = `${CSS_PREFIX}-high-contrast`;
+
+    /**
+     * Turn the high-contrast class on or off.
+     *
+     * @param {boolean} enabled
+     */
+    function toggleHighContrastClass(enabled) {
+      document.documentElement.classList.toggle(HIGH_CONTRAST_CLASS, enabled);
+    }
+
+    /**
+     * Whether high contrast is on.
+     *
+     * @returns {boolean}
+     */
+    function hasHighContrastClass() {
+      return document.documentElement.classList.contains(HIGH_CONTRAST_CLASS);
+    }
+
     function setHighContrast(enabled) {
-      revealElement.classList.toggle(`${CSS_PREFIX}-high-contrast`, enabled);
+      toggleHighContrastClass(enabled);
       storageSet("high-contrast", String(enabled));
       announceStatus(
         enabled ? "High contrast mode enabled" : "High contrast mode disabled",
@@ -432,7 +458,7 @@ window.RevealjsA11y =
     function setupHighContrast(skipStorage) {
       const stored = skipStorage ? null : storageGet("high-contrast");
       if (stored === "true" || (stored === null && config.highContrast)) {
-        revealElement.classList.add(`${CSS_PREFIX}-high-contrast`);
+        toggleHighContrastClass(true);
       }
     }
 
@@ -1586,10 +1612,7 @@ window.RevealjsA11y =
 
       const hcSwitch = menu.querySelector('[data-setting="high-contrast"]');
       if (hcSwitch) {
-        const active = revealElement.classList.contains(
-          `${CSS_PREFIX}-high-contrast`,
-        );
-        hcSwitch.setAttribute("aria-checked", String(active));
+        hcSwitch.setAttribute("aria-checked", String(hasHighContrastClass()));
       }
 
       const lhSwitch = menu.querySelector('[data-setting="link-highlight"]');
@@ -1975,9 +1998,7 @@ window.RevealjsA11y =
         fieldset.appendChild(createElement("legend", {}, "Display"));
 
         {
-          const hcActive = revealElement.classList.contains(
-            `${CSS_PREFIX}-high-contrast`,
-          );
+          const hcActive = hasHighContrastClass();
           const row = createSwitch("hc", "High contrast", "high-contrast", hcActive);
           const btn = row.querySelector('[data-setting="high-contrast"]');
           btn.addEventListener("click", () => {
@@ -2576,8 +2597,8 @@ window.RevealjsA11y =
     // =========================================================================
 
     function resetAllPreferences() {
+      toggleHighContrastClass(false);
       revealElement.classList.remove(
-        `${CSS_PREFIX}-high-contrast`,
         `${CSS_PREFIX}-link-highlight`,
         `${CSS_PREFIX}-font-override`,
         `${CSS_PREFIX}-line-height-override`,
@@ -2633,7 +2654,7 @@ window.RevealjsA11y =
       if (visualIndicator) visualIndicator.hidden = false;
 
       if (config.highContrast) {
-        revealElement.classList.add(`${CSS_PREFIX}-high-contrast`);
+        toggleHighContrastClass(true);
       }
       if (config.linkHighlight) {
         revealElement.classList.add(`${CSS_PREFIX}-link-highlight`);
@@ -2740,10 +2761,10 @@ window.RevealjsA11y =
         const statusEl = revealElement.querySelector(`.${CSS_PREFIX}-status`);
         if (statusEl) statusEl.remove();
 
+        toggleHighContrastClass(false);
         revealElement.classList.remove(
           `${CSS_PREFIX}-focus-indicators`,
           `${CSS_PREFIX}-reduced-motion`,
-          `${CSS_PREFIX}-high-contrast`,
           `${CSS_PREFIX}-link-highlight`,
           `${CSS_PREFIX}-font-override`,
           `${CSS_PREFIX}-line-height-override`,
