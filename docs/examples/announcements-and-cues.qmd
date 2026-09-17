@@ -71,7 +71,7 @@ revealjs-a11y:
     audio: true
 ```
 
-The visual cue is a thin blue bar across the top of the window, which sweeps from left to right and fades in under half a second.
+The visual cue is a thin blue bar across the top of the window, which sweeps from left to right and then fades out, all within half a second.
 The audio cue is a short two-note tone.
 Browsers block sound until the reader interacts with the page, so the first click or key press arms it.
 

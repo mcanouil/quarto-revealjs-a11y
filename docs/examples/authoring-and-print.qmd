@@ -70,8 +70,17 @@ format:
 
 Left at `false`, a slide is exported once with every fragment visible.
 
-Set to `true`, a slide becomes one page per fragment step, preceded by a page with every fragment hidden.
-A slide with three steps therefore exports as four pages, and the first shows the slide before anything is revealed.
+Set to `true`, a slide becomes one page per fragment step, preceded by a page for the slide before anything is revealed.
+A slide with three steps therefore exports as four pages.
+
+::: {.callout-warning}
+
+The pages come out identical today.
+The plugin hides the later fragments on each page with an inline style, and the print stylesheet overrides that with `opacity: 1 !important` on every fragment, so each of the four pages shows the whole slide.
+
+You get the page count you asked for, and not the build-up.
+
+:::
 
 The plugin honours a per-slide override, so you can choose page by page.
 

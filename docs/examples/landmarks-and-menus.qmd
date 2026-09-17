@@ -77,11 +77,14 @@ The settings panel, the transcript and the font picker sit outside it and carry 
 revealjs-a11y:
   menu:
     enabled: true
-    shortcut: s
+    shortcut: y
     position: left
 ```
 
 `menu: true` gives the defaults, and `menu: false` removes the panel.
+
+Pick a letter RevealJS has not taken.
+The bundled plugins Quarto ships already bind several, and <kbd>S</kbd> opens the speaker notes view, so a deck that rebinds the panel to `s` loses one of the two.
 The object form sets the three keys, and any key you leave out keeps its default.
 
 The panel is a modal dialogue.
