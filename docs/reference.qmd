@@ -92,7 +92,8 @@ These run in `print-pdf`:
   The stored reader choice still applies, unlike high contrast.
 - The slide landmarks, which label each slide.
 - The alt text warnings, on the current slide only.
-- The transcript, when `transcript.print` is on, or when the reader's stored **Print transcript** choice is on.
+- The transcript, when `transcript` is enabled and either `transcript.print` or the reader's stored **Print transcript** choice is on.
+  With `transcript: false` the plugin generates nothing, whatever the reader stored.
 - The fragment pages, when fragments are separated.
 
 Everything else is skipped: the reader controls, the settings panel, the menus, the announcements, the cues, the pointer indicator, the skip link, the focus indicators, the reduced-motion handling, and the viewport rewrite.
