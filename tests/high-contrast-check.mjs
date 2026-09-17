@@ -112,10 +112,13 @@ try {
     `the transcript text is ${transcript.colour}, expected ${BLACK}`,
   );
   await page.keyboard.press("Escape");
+  await page.waitForSelector(".revealjs-a11y-transcript", { state: "hidden" });
 
-  // The pointer indicator, which the fixture enables.
+  // The pointer indicator, which the fixture enables. The element is appended
+  // at setup and kept hidden, so waiting for it to be attached would resolve
+  // whether or not the key press did anything.
   await page.keyboard.press("p");
-  await page.waitForSelector(".revealjs-a11y-pointer", { state: "attached" });
+  await page.waitForSelector(".revealjs-a11y-pointer", { state: "visible" });
   const pointer = await page.evaluate(() => {
     const style = getComputedStyle(document.querySelector(".revealjs-a11y-pointer"));
     return { border: style.borderTopColor, width: style.borderTopWidth };
@@ -129,6 +132,7 @@ try {
     `the pointer border is ${pointer.width} wide, expected 4px`,
   );
   await page.keyboard.press("p");
+  await page.waitForSelector(".revealjs-a11y-pointer", { state: "hidden" });
 
   // Turning it off has to clear the root element, or the deck keeps the
   // repaint for good.
