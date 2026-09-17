@@ -59,6 +59,13 @@ try {
   const pages = await shownByPage();
   const withFragments = pages.filter((fragments) => fragments.length > 0);
 
+  // The title slide, the three pages of the slide that builds up, and the
+  // slide with no fragments, which is exported once.
+  check(
+    pages.length === 5,
+    `expected 5 printed pages, got ${pages.length}`,
+  );
+
   // The fixture has one slide carrying two fragments, so it prints as the slide
   // before anything is revealed, then one page per step.
   const expected = [

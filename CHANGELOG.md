@@ -4,7 +4,7 @@
 
 ### Bug Fixes
 
-- fix: Print the fragment build-up again. RevealJS separates fragments itself, and the plugin did the work a second time, which doubled the pages and put every fragment of a slide on each of them. A print rule also forced every fragment visible, which flattened what RevealJS had built.
+- fix: Print the fragment build-up again. RevealJS separates fragments itself, and the plugin both did that work a second time and forced every fragment visible, so each page carried the whole slide.
 
 ### Removals
 
