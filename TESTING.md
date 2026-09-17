@@ -22,7 +22,8 @@ npm install
 npx playwright install --with-deps chromium
 node axe-check.mjs _a11y-fixture.html
 node landmarks-check.mjs _a11y-fixture.html
-node print-fragments-check.mjs _fragments-fixture.html
+node print-fragments-check.mjs _fragments-fixture.html separated
+node print-fragments-check.mjs _fragments-together-fixture.html together
 ```
 
 ## Slide landmark keyboard check

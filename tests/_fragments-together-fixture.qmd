@@ -1,0 +1,22 @@
+---
+title: "Fragments together fixture"
+format:
+  revealjs:
+    pdf-separate-fragments: false
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      alt-text-warnings: false
+---
+
+## Build up
+
+The slide body, which the one page shows.
+
+::: {.fragment}
+The first step.
+:::
+
+::: {.fragment}
+The second step.
+:::

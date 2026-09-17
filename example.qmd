@@ -532,8 +532,8 @@ See also [How to Use This Deck](#how-to-use-this-deck) for plugin-specific short
 :::
 
 ::: {.notes}
-This slide uses `{pdf-separate}` to generate separate pages per fragment
-state in print-pdf mode, useful for overlaying content like
+Set `pdf-separate-fragments: true` on the format to give each fragment state
+its own page in print-pdf mode, which suits overlaying content such as
 `fade-in-then-out` fragments.
 :::
 

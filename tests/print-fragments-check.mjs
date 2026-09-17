@@ -15,10 +15,29 @@ import { serveDeck } from "./serve.mjs";
 // way the cascade is lost.
 
 const target = process.argv[2];
-if (!target) {
-  console.error("Usage: node print-fragments-check.mjs <html-file>");
+const mode = process.argv[3] ?? "separated";
+if (!target || (mode !== "separated" && mode !== "together")) {
+  console.error(
+    "Usage: node print-fragments-check.mjs <html-file> [separated|together]",
+  );
   process.exit(2);
 }
+
+// `separated` is a deck with `pdf-separate-fragments: true`, which prints the
+// slide before anything is revealed and then one page per step. `together` is
+// the same deck with the option off, which prints the slide once with every
+// fragment shown. The second is worth checking because the plugin used to
+// force fragments visible in print, and that rule is gone: nothing but
+// RevealJS guarantees the fragments appear at all now.
+const EXPECTATIONS = {
+  // The title slide, the three pages of the slide that builds up, and the
+  // slide with no fragments, which is exported once.
+  separated: { pages: 5, fragments: [[false, false], [true, false], [true, true]] },
+  // The title slide, and the slide that would have built up, printed once.
+  together: { pages: 2, fragments: [[true, true]] },
+};
+
+const expectation = EXPECTATIONS[mode];
 
 const { url, close } = await serveDeck(target);
 const browser = await chromium.launch();
@@ -59,20 +78,12 @@ try {
   const pages = await shownByPage();
   const withFragments = pages.filter((fragments) => fragments.length > 0);
 
-  // The title slide, the three pages of the slide that builds up, and the
-  // slide with no fragments, which is exported once.
   check(
-    pages.length === 5,
-    `expected 5 printed pages, got ${pages.length}`,
+    pages.length === expectation.pages,
+    `expected ${expectation.pages} printed pages, got ${pages.length}`,
   );
 
-  // The fixture has one slide carrying two fragments, so it prints as the slide
-  // before anything is revealed, then one page per step.
-  const expected = [
-    [false, false],
-    [true, false],
-    [true, true],
-  ];
+  const expected = expectation.fragments;
 
   check(
     withFragments.length === expected.length,
@@ -108,4 +119,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Print fragment separation checks passed.");
+console.log(`Print fragment checks passed (${mode}).`);

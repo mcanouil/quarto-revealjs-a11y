@@ -46,7 +46,9 @@ jobs:
       - name: Run print fragment separation check
         if: ${{ !cancelled() && steps.render.outcome == 'success' && steps.deps.outcome == 'success' }}
         working-directory: tests
-        run: node print-fragments-check.mjs _fragments-fixture.html
+        run: |
+          node print-fragments-check.mjs _fragments-fixture.html separated
+          node print-fragments-check.mjs _fragments-together-fixture.html together
 
       - name: Upload rendered deck
         if: always()
@@ -56,3 +58,4 @@ jobs:
           path: |
             tests/_a11y-fixture.html
             tests/_fragments-fixture.html
+            tests/_fragments-together-fixture.html
