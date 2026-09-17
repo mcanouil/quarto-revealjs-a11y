@@ -1,0 +1,20 @@
+---
+title: "High contrast fixture"
+format:
+  revealjs:
+    # A dark theme, so the page background behind the slides is not white to
+    # begin with and the viewport assertion means something. The plugin's own
+    # chrome is white whatever the theme, so the checks for it read the text
+    # and border colours instead.
+    theme: dark
+    revealjs-plugins:
+      - a11y
+    revealjs-a11y:
+      high-contrast: true
+      alt-text-warnings: false
+      pointer-indicator: true
+---
+
+## A slide
+
+A paragraph, and a [link](https://example.com).

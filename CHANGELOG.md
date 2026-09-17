@@ -4,6 +4,7 @@
 
 ### Bug Fixes
 
+- fix: Apply high contrast to the plugin's own chrome. The settings panel, the transcript overlay, the pointer and the page background around the slides kept their usual colours, because the class went on the deck and all four sit outside it.
 - fix: Print the fragment build-up again. RevealJS separates fragments itself, and the plugin both did that work a second time and forced every fragment visible, so each page carried the whole slide.
 
 ### Removals

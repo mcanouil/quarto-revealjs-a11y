@@ -49,6 +49,10 @@ jobs:
         run: |
           node print-fragments-check.mjs _fragments-fixture.html separated
           node print-fragments-check.mjs _fragments-together-fixture.html together
+      - name: Run high contrast chrome check
+        if: ${{ !cancelled() && steps.render.outcome == 'success' && steps.deps.outcome == 'success' }}
+        working-directory: tests
+        run: node high-contrast-check.mjs _high-contrast-fixture.html
 
       - name: Upload rendered deck
         if: always()
@@ -59,3 +63,4 @@ jobs:
             tests/_a11y-fixture.html
             tests/_fragments-fixture.html
             tests/_fragments-together-fixture.html
+            tests/_high-contrast-fixture.html

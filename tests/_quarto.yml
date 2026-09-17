@@ -8,3 +8,4 @@ project:
     - _a11y-fixture.qmd
     - _fragments-fixture.qmd
     - _fragments-together-fixture.qmd
+    - _high-contrast-fixture.qmd
