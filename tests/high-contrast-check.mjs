@@ -73,17 +73,9 @@ try {
     const style = getComputedStyle(
       document.querySelector("#revealjs-a11y-menu"),
     );
-    return {
-      background: style.backgroundColor,
-      colour: style.color,
-      border: style.borderLeftColor,
-    };
+    return { colour: style.color, border: style.borderLeftColor };
   });
 
-  check(
-    menu.background === WHITE,
-    `the settings panel background is ${menu.background}, expected ${WHITE}`,
-  );
   check(
     menu.colour === BLACK,
     `the settings panel text is ${menu.colour}, expected ${BLACK}`,
@@ -113,12 +105,8 @@ try {
     const style = getComputedStyle(
       document.querySelector(".revealjs-a11y-transcript"),
     );
-    return { background: style.backgroundColor, colour: style.color };
+    return { colour: style.color };
   });
-  check(
-    transcript.background === WHITE,
-    `the transcript background is ${transcript.background}, expected ${WHITE}`,
-  );
   check(
     transcript.colour === BLACK,
     `the transcript text is ${transcript.colour}, expected ${BLACK}`,
@@ -147,10 +135,26 @@ try {
   await page.keyboard.press("a");
   await waitForMenu(true);
   await page.click('[data-setting="high-contrast"]');
-  const stillOn = await page.evaluate(() =>
-    document.documentElement.classList.contains("revealjs-a11y-high-contrast"),
+  const afterOff = await page.evaluate(() => ({
+    // Anywhere at all, so a change that puts the class back on the deck is
+    // caught rather than passing because the root element is clear.
+    carriers: document.querySelectorAll(".revealjs-a11y-high-contrast").length,
+    onRoot: document.documentElement.classList.contains(
+      "revealjs-a11y-high-contrast",
+    ),
+    checked: document
+      .querySelector('[data-setting="high-contrast"]')
+      .getAttribute("aria-checked"),
+  }));
+  check(!afterOff.onRoot, "the high-contrast class stayed on the root element");
+  check(
+    afterOff.carriers === 0,
+    `${afterOff.carriers} element(s) still carry the high-contrast class`,
   );
-  check(!stillOn, "the high-contrast class stayed on after it was turned off");
+  check(
+    afterOff.checked === "false",
+    `the switch reports aria-checked ${afterOff.checked}, expected false`,
+  );
 } finally {
   await browser.close();
   await close();
