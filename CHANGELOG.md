@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 (2026-09-23)
+
 ### Bug Fixes
 
 - fix: Apply high contrast to the plugin's own chrome. The settings panel, the transcript overlay, the pointer and the page background around the slides kept their usual colours, because the class went on the deck and all four sit outside it.
