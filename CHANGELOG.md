@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: Hide the shadow of the settings panel while the panel is closed. The closed panel sits off-screen, and its shadow showed as a dark strip at the edge of every slide.
+
 ## 0.3.0 (2026-09-23)
 
 ### Bug Fixes

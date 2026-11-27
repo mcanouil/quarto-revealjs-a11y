@@ -711,7 +711,6 @@
   font-size: 14px;
   line-height: 1.4;
   letter-spacing: normal;
-  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -721,11 +720,15 @@
   right: auto;
   left: 0;
   transform: translateX(-100%);
-  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.2);
 }
 
 .revealjs-a11y-menu[aria-hidden="false"] {
   transform: translateX(0);
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
+}
+
+.revealjs-a11y-menu--left[aria-hidden="false"] {
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.2);
 }
 
 /* =========================================================================
