@@ -25,6 +25,7 @@ node landmarks-check.mjs _a11y-fixture.html
 node print-fragments-check.mjs _fragments-fixture.html separated
 node print-fragments-check.mjs _fragments-together-fixture.html together
 node high-contrast-check.mjs _high-contrast-fixture.html
+node closed-menu-shadow-check.mjs _a11y-fixture.html
 ```
 
 ## Slide landmark keyboard check

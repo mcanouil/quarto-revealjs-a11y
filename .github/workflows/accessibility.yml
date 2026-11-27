@@ -53,6 +53,10 @@ jobs:
         if: ${{ !cancelled() && steps.render.outcome == 'success' && steps.deps.outcome == 'success' }}
         working-directory: tests
         run: node high-contrast-check.mjs _high-contrast-fixture.html
+      - name: Run closed settings panel shadow check
+        if: ${{ !cancelled() && steps.render.outcome == 'success' && steps.deps.outcome == 'success' }}
+        working-directory: tests
+        run: node closed-menu-shadow-check.mjs _a11y-fixture.html
 
       - name: Upload rendered deck
         if: always()
